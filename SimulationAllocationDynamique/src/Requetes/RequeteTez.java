@@ -1,7 +1,8 @@
 package Requetes;
 
 import java.util.*;
-import Divers.*;
+import Types.*;
+import ParametresGlobeaux.*;
 
 public class RequeteTez {
 	public int index;

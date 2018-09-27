@@ -11,16 +11,9 @@ import org.gnu.glpk.glp_iocp;
 import org.gnu.glpk.glp_prob;
 import org.gnu.glpk.glp_tree;
 
-import Divers.VariablesGlobales;
-import Entite.ClasseClients;
-import Infrastructure.Cloud;
-import Entite.Cout;
-import Entite.Job;
-import Entite.MachinePhysique;
-import Entite.Requete;
-import Entite.RequeteTez;
-import Entite.StageTez;
-import Entite.VM;
+import ParametresGlobeaux.*;
+import Requetes.*;
+import Infrastructure.*;
 
 public class ModelePlacementGLPKTEZ  implements GlpkCallbackListener{
 	Cloud cloud;

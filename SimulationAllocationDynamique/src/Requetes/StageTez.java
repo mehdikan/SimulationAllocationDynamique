@@ -2,7 +2,7 @@ package Requetes;
 
 import java.util.ArrayList;
 
-import Divers.*;
+import ParametresGlobeaux.*;
 
 public class StageTez {
 	public RequeteTez requeteTez;
@@ -27,18 +27,10 @@ public class StageTez {
 		this.ordreArrive=VariablesGlobales.stageOrdreArrive;
 		VariablesGlobales.stageOrdreArrive+=1;
 		
-		if(VariablesGlobales.agentEnCours==null) {
-			this.indexStage=VariablesGlobales.stageIndex;
-			VariablesGlobales.stageIndex++;
-			this.indexDebutTasksTez=VariablesGlobales.tezTasksIndex;
-			VariablesGlobales.tezTasksIndex+=nombreTachesTez;
-		}else {
-			this.indexStage=VariablesGlobales.agentEnCours.cloud.stageIndex;
-			VariablesGlobales.agentEnCours.cloud.stageIndex++;
-			this.indexDebutTasksTez=VariablesGlobales.agentEnCours.cloud.tezTasksIndex;
-			VariablesGlobales.agentEnCours.cloud.tezTasksIndex+=nombreTachesTez;
-		}
-		
+		this.indexStage=VariablesGlobales.stageIndex;
+		VariablesGlobales.stageIndex++;
+		this.indexDebutTasksTez=VariablesGlobales.tezTasksIndex;
+		VariablesGlobales.tezTasksIndex+=nombreTachesTez;
 		
 		this.groupesTezTaches=new ArrayList<GroupeTachesTez>();
 		for(int i=0;i<nombreTachesTez;i++){

@@ -2,12 +2,15 @@ package Infrastructure;
 
 import java.util.*;
 
-import com.sun.javafx.collections.MapAdapterChange;
+import AllocationStatique.PlanStatique;
+import AllocationStatique.TrancheTempsAlloue;
 
-import Divers.*;
-import Gantt.Gantt;
-import Gantt.TrancheTempsAlloue;
-import Requetes.ClasseClients;
+//import com.sun.javafx.collections.MapAdapterChange;
+
+import Types.*;
+import Output.*;
+import Requetes.*;
+import ParametresGlobeaux.*;
 
 public class Cloud {
 	public ArrayList<ClasseClients> listeClassesClient;
@@ -19,7 +22,6 @@ public class Cloud {
 	public static int heureJournee;
 	public static int minuteJournee;
 	
-	public Cloud() {}
 	
 	public Cloud(){
 		listeClassesClient=new ArrayList<ClasseClients>();
@@ -86,17 +88,7 @@ public class Cloud {
 			}
 		}
 	}
-	
-	public int getNbJobs(){
-		int nb=0;
-		for(ClasseClients c : listeClassesClient){
-			for(Requete r : c.requeteEnAttente){
-				nb+=r.nbJobs();
-			}
-		}
-		return nb;
-	}
-	
+		
 	public int getNbStages(){
 		int nb=0;
 		for(ClasseClients c : listeClassesClient){
@@ -121,51 +113,6 @@ public class Cloud {
 		return 0;
 	}
 	
-	public boolean ressourcesDispoMR(GroupeTaches tachesG,int instantCourant){
-		for(MachinePhysique mp : listeMachinesPhysique){
-			for(VM vm : mp.ListeVMs){
-				if(tachesG.type==0
-						&& tachesG.job.processeurTacheMap<=vm.processeurMapSlots
-						&& tachesG.job.memoireTacheMap<=vm.memoireMapSlots
-						&& tachesG.job.stockageTacheMap<=vm.stockageMapSlots){
-					for(GroupeRessources g:vm.groupeMapRessources){
-						int indexRessouces=0;
-						if(g.getDisponibilite()==1 && vm.verifierDisponibiliteMap(indexRessouces,instantCourant,tachesG.job.dureeTacheMap)){
-							boolean trouv=false;
-							for(GroupeTaches gg:tachesG.job.groupesMapTaches){
-								if(tachesG!=gg && gg.ressource==g){
-									trouv=true;
-								}
-							}
-							if(!trouv){
-								return true;
-							}
-						}
-						indexRessouces++;
-					}
-				}
-				else if(tachesG.type==1
-						&& tachesG.job.processeurTacheReduce<=vm.processeurReduceSlots
-						&& tachesG.job.memoireTacheReduce<=vm.memoireReduceSlots
-						&& tachesG.job.stockageTacheReduce<=vm.stockageReduceSlots){
-					for(GroupeRessources g:vm.groupeReduceRessources){
-						int indexRessouces=0;
-						if(g.getDisponibilite()==1 && vm.verifierDisponibiliteReduce(indexRessouces,instantCourant,tachesG.job.dureeTacheReduce)) {
-							boolean trouv=false;
-							for(GroupeTaches gg:tachesG.job.groupesReduceTaches){
-								if(tachesG!=gg && gg.ressource==g){
-									trouv=true;
-								}
-							}
-							if(!trouv){return true;}
-						}
-						indexRessouces++;
-					}
-				}
-			}
-		}
-		return false;
-	}
 	
 	
 	public boolean ressourcesDispoTez(GroupeTachesTez tachesG,int instantCourant){
@@ -193,26 +140,11 @@ public class Cloud {
 		}
 		return false;
 	}
-	
-	public void allouerRessourcesMR(Gantt gantt){
-		for(TrancheTempsAlloue tta:gantt.tab){
-			for(int t=tta.dateDebut;t<=tta.dateFin;t++){
-				if(tta.type==1){
-					this.listeMachinesPhysique.get(this.getIndexMachinePhysiqueMR(tta.indexRessource, 1)).ListeVMs.get(this.getIndexVMMR(tta.indexRessource, 1)).disponibliteTrancheTempsMap[this.getIndexRessourceDansVMMR(tta.indexRessource, 1)][t-1]=0;
-				}
-				else{
-					this.listeMachinesPhysique.get(this.getIndexMachinePhysiqueMR(tta.indexRessource, 2)).ListeVMs.get(this.getIndexVMMR(tta.indexRessource, 2)).disponibliteTrancheTempsReduce[this.getIndexRessourceDansVMMR(tta.indexRessource, 2)][t-1]=0;	
-				}
-			}
-		}
-	}
-	
-	public void allouerRessourcesTez(Gantt gantt){
-		if(VariablesGlobales.verbose) System.out.println("iii>"+gantt);
+
+	public void allouerRessourcesTez(PlanStatique gantt){
 		for(TrancheTempsAlloue tta:gantt.tab){
 			for(int t=tta.dateDebut;t<=tta.dateFin;t++){
 				this.listeMachinesPhysique.get(this.getIndexMachinePhysiqueTez(tta.indexRessource)).ListeVMs.get(this.getIndexVMTez(tta.indexRessource)).disponibliteTrancheTempsTez[this.getIndexRessourceDansVMTez(tta.indexRessource)][t-1]=0;
-				//System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> tta.dateDebut="+tta.dateDebut+" tta.dateFin="+tta.dateFin+" tta.indexRessource="+tta.indexRessource+" this.getIndexRessource="+this.getIndexRessourceDansVMTez(tta.indexRessource)+" t-1="+(t-1));
 			}
 		}
 	}
@@ -365,71 +297,14 @@ public class Cloud {
 			for(VM vm:mp.ListeVMs){
 				for(int i=0;i<vm.nbTezSlots;i++){
 					if(index==indexRessource)
-						return index-vm.indexDebutSlotsMap;
+						return index-vm.indexDebutSlotsTez;
 					index++;
 				}
 			}
 		}
 		return -1;
 	}
-	
-	public void activeResssource(TypeVM type) {
-		for(MachinePhysique p1:listeMachinesPhysique){
-			for(VM vm1:p1.ListeVMs){
-				for(GroupeRessources t: vm1.groupeTezRessources){
-					if(t.vm.type==type && t.active==0) {
-						t.active=1;
-						t.restePourDesactiver=0;
-						for(int tt=0;tt<VariablesGlobales.T;tt++){
-							vm1.disponibliteTrancheTempsTez[t.index-t.vm.indexDebutSlotsTez][tt]=1;
-						}
-						return;
-					}
-				}
-			}
-		}
-	}
-	
-	public void desactiveResssource(TypeVM type) {
-		
-		GroupeRessources r=null;
-		int cpt1=0,cpt3=0;
-		for(MachinePhysique p1:listeMachinesPhysique){
-			for(VM vm1:p1.ListeVMs){
-				for(GroupeRessources t: vm1.groupeTezRessources){
-					
-					cpt3=0;
-					if(t.vm.type==type && t.active==1) {
-						if(r==null) {
-							r=t;
-							cpt1=0;
-							for(int tt=0;tt<VariablesGlobales.T;tt++){
-								cpt1+=t.vm.disponibliteTrancheTempsTez[t.index-t.vm.indexDebutSlotsTez][tt];
-								if(t.vm.disponibliteTrancheTempsTez[t.index-t.vm.indexDebutSlotsTez][tt]==0) cpt3=tt;
-							}
-						}
-						else {
-							int cpt4=0;
-							int cpt2=0;
-							for(int tt=0;tt<VariablesGlobales.T;tt++){
-								cpt2=t.vm.disponibliteTrancheTempsTez[t.index-t.vm.indexDebutSlotsTez][tt];
-								if(t.vm.disponibliteTrancheTempsTez[t.index-t.vm.indexDebutSlotsTez][tt]==0) cpt4=tt;
-							}
-							if(cpt2<=cpt1) {
-								r=t;
-								cpt1=cpt2;
-								cpt3=cpt4;
-							}
-						}
-					}
-				}
-			}
-		}
-		if(r!=null) {
-			r.active=0;
-			r.restePourDesactiver=cpt3;
-		}
-	}
+
 	
 	public double tauxSurcharge() {
 		double nbNonDisponibles=0;

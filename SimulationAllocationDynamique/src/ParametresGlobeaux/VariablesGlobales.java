@@ -4,8 +4,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import MDPParallele.Agent;
-
 public class VariablesGlobales {
 	public static int jobIndex=0;
 	public static int stageIndex=0;
@@ -27,10 +25,8 @@ public class VariablesGlobales {
 	public static long jobOrdreArrive=0;
 	public static long stageOrdreArrive=0;
 	public static long ordreLiberation=0;
-	public static boolean verbose=false;
+	public static boolean verbose=true;
 	public static int nbAgents=3;
-	public static Agent agentEnCours=null;
-	public static ArrayList<Agent> listeAgents=new ArrayList<Agent>();
 	
 	public static FileWriter writer_gbrt;
 	public static FileWriter writer_gmpt;

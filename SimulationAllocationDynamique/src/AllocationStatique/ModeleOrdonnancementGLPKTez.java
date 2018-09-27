@@ -1,23 +1,10 @@
 package AllocationStatique;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import org.gnu.glpk.*;
-
-import Divers.VariablesGlobales;
-import Entite.ClasseClients;
-import Infrastructure.Cloud;
-import Entite.CloudParallele;
-import Entite.Cout;
-//import Entite.Job;
-import Entite.StageTez;
-import Entite.MachinePhysique;
-//import Entite.Requete;
-import Entite.RequeteTez;
-import Entite.VM;
-import Output.Gantt;
-import Gantt.TrancheTempsAlloue;
+import ParametresGlobeaux.*;
+import Requetes.*;
+import Infrastructure.*;
+import Output.*;
 
 public class ModeleOrdonnancementGLPKTez implements GlpkCallbackListener{
 	glp_prob lp;
@@ -48,9 +35,7 @@ public class ModeleOrdonnancementGLPKTez implements GlpkCallbackListener{
 		this.cout=cout;
 		this.cloud=cloud;
 		nbStages=cloud.getNbStages();                
-		nbTezSlots=VariablesGlobales.tezSlotsIndex;			 
-		if(cloud instanceof CloudParallele)
-			nbTezSlots=((CloudParallele)cloud).tezSlotsIndex;		
+		nbTezSlots=VariablesGlobales.tezSlotsIndex;			 	
 		T=VariablesGlobales.T;
 		Ws=VariablesGlobales.Pstor;
 		////////////////////////
@@ -131,13 +116,13 @@ public class ModeleOrdonnancementGLPKTez implements GlpkCallbackListener{
 		//////////////////////
 	}
 	
-	public Gantt resoudre(){
+	public PlanStatique resoudre(){
 		
         glp_iocp iocp;
         SWIGTYPE_p_int ind;
         SWIGTYPE_p_double val;
         int ret;
-        Gantt gantt=null;
+        PlanStatique gantt=null;
 
         try {
             // Create problem
@@ -477,7 +462,7 @@ public class ModeleOrdonnancementGLPKTez implements GlpkCallbackListener{
         }
     }
 	
-	public Gantt ecrireResultat(glp_prob lp){	
+	public PlanStatique ecrireResultat(glp_prob lp){	
 		String name;
 		double val;
 		int Req[];
@@ -528,7 +513,7 @@ public class ModeleOrdonnancementGLPKTez implements GlpkCallbackListener{
         }
 		
 	    int debut,fin;
-	    Gantt gantt=new Gantt();
+	    PlanStatique gantt=new PlanStatique();
 	    
 	    for(int i=0;i<nbStages;i++){
 			for(int j=0;j<nbTezTasks[i];j++){
@@ -553,7 +538,7 @@ public class ModeleOrdonnancementGLPKTez implements GlpkCallbackListener{
 					}
 				}
 				//System.out.println("--------------------------------------------# "+debut);
-				gantt.ajouterTrancheTemps(new TrancheTempsAlloue(1, A[i][j], Req[i], i, j, debut, fin));
+				gantt.ajouterTrancheTemps(new TrancheTempsAlloue(A[i][j], Req[i], i, j, debut, fin));
 			}
 		}
 	    

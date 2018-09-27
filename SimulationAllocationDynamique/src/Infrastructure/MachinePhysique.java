@@ -2,7 +2,7 @@ package Infrastructure;
 
 import java.util.*;
 
-import Divers.VariablesGlobales;
+import ParametresGlobeaux.*;
 
 public class MachinePhysique {
 	public ArrayList<VM> ListeVMs;
@@ -12,11 +12,5 @@ public class MachinePhysique {
 		this.ListeVMs=new ArrayList<VM>();
 		indexMachinePhysique=VariablesGlobales.machinePhysiqueIndex;
 		VariablesGlobales.machinePhysiqueIndex++;
-	}
-	
-	public MachinePhysique(CloudParallele cloud){
-		this.ListeVMs=new ArrayList<VM>();
-		indexMachinePhysique=cloud.machinePhysiqueIndex;
-		cloud.machinePhysiqueIndex++;
 	}
 }

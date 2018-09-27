@@ -1,6 +1,6 @@
 package AllocationStatique;
 
-import Divers.VariablesGlobales;
+import ParametresGlobeaux.*;
 
 public class Cout {
 	public double coutProcesseur;

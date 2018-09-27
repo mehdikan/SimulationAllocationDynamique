@@ -2,7 +2,7 @@ package Infrastructure;
 
 import java.util.ArrayList;
 
-import Divers.VariablesGlobales;
+import ParametresGlobeaux.*;
 
 public class VM {
 	public int indexVM;
@@ -34,58 +34,10 @@ public class VM {
 	public VM() {}
 
 	
-	public VM(int nbMapSlots,int nbReduceSlots,int processeurMapSlots,int memoireMapSlots,int stockageMapSlots,int processeurReduceSlots,int memoireReduceSlots,int stockageReduceSlots){
-		this.processeurMapSlots=processeurMapSlots;
-		this.memoireMapSlots=memoireMapSlots;
-		this.stockageMapSlots=stockageMapSlots;
-		this.processeurReduceSlots=processeurReduceSlots;
-		this.memoireReduceSlots=memoireReduceSlots;
-		this.stockageReduceSlots=stockageReduceSlots;
-		this.nbMapSlots=nbMapSlots;
-		this.nbReduceSlots=nbReduceSlots;
-		this.indexDebutSlotsMap=VariablesGlobales.mapSlotsIndex;
-		this.indexDebutSlotsReduce=VariablesGlobales.reduceSlotsIndex;
-		this.indexDebutSlotsTez=VariablesGlobales.tezSlotsIndex;
-		this.indexVM=VariablesGlobales.vmIndex;
-		VariablesGlobales.vmIndex++;
-		VariablesGlobales.mapSlotsIndex+=nbMapSlots;
-		VariablesGlobales.reduceSlotsIndex+=nbReduceSlots;
-		VariablesGlobales.tezSlotsIndex+=nbTezSlots;
-		disponibliteTrancheTempsMap=new int[nbMapSlots][VariablesGlobales.T];
-		disponibliteTrancheTempsReduce=new int[nbReduceSlots][VariablesGlobales.T];
-		disponibliteTrancheTempsTez=new int[nbTezSlots][VariablesGlobales.T];
-		disponibliteTrancheTempsMapBack=new int[nbMapSlots][VariablesGlobales.T];
-		disponibliteTrancheTempsReduceBack=new int[nbReduceSlots][VariablesGlobales.T];
-		disponibliteTrancheTempsTezBack=new int[nbTezSlots][VariablesGlobales.T];
-		
-		this.initDisponibiliteTrancheTemps();
-		
-		
-		groupeMapRessources=new ArrayList<GroupeRessources>();
-		groupeReduceRessources=new ArrayList<GroupeRessources>();
-		groupeTezRessources=new ArrayList<GroupeRessources>();
-		
-		for(int i=0;i<nbMapSlots;i++){
-			groupeMapRessources.add(new GroupeRessources(this,0));
-		}
-		
-		for(int i=0;i<nbReduceSlots;i++){
-			groupeReduceRessources.add(new GroupeRessources(this,1));
-		}
-	}
-	
 	public VM(int nbTezSlots,int processeurTezSlots,int memoireTezSlots,int stockageTezSlots){
-		this.processeurMapSlots=processeurMapSlots;
-		this.memoireMapSlots=memoireMapSlots;
-		this.stockageMapSlots=stockageMapSlots;
-		this.processeurReduceSlots=processeurReduceSlots;
-		this.memoireReduceSlots=memoireReduceSlots;
-		this.stockageReduceSlots=stockageReduceSlots;
 		this.processeurTezSlots=processeurTezSlots;
 		this.memoireTezSlots=memoireTezSlots;
 		this.stockageTezSlots=stockageTezSlots;
-		this.nbMapSlots=nbMapSlots;
-		this.nbReduceSlots=nbReduceSlots;
 		this.nbTezSlots=nbTezSlots;
 		this.indexDebutSlotsMap=VariablesGlobales.mapSlotsIndex;
 		this.indexDebutSlotsReduce=VariablesGlobales.reduceSlotsIndex;
