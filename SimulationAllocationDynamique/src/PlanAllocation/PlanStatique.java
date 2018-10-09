@@ -1,4 +1,4 @@
-package AllocationStatique;
+package PlanAllocation;
 
 import java.io.IOException;
 import java.io.PrintWriter;

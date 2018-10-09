@@ -2,15 +2,13 @@ package Infrastructure;
 
 import java.util.*;
 
-import AllocationStatique.PlanStatique;
-import AllocationStatique.TrancheTempsAlloue;
-
 //import com.sun.javafx.collections.MapAdapterChange;
 
 import Types.*;
-import Output.*;
 import Requetes.*;
 import ParametresGlobeaux.*;
+import PlanAllocation.PlanStatique;
+import PlanAllocation.TrancheTempsAlloue;
 
 public class Cloud {
 	public ArrayList<ClasseClients> listeClassesClient;
@@ -144,6 +142,7 @@ public class Cloud {
 	public void allouerRessourcesTez(PlanStatique gantt){
 		for(TrancheTempsAlloue tta:gantt.tab){
 			for(int t=tta.dateDebut;t<=tta.dateFin;t++){
+				//System.out.println("+"+tta.dateDebut);
 				this.listeMachinesPhysique.get(this.getIndexMachinePhysiqueTez(tta.indexRessource)).ListeVMs.get(this.getIndexVMTez(tta.indexRessource)).disponibliteTrancheTempsTez[this.getIndexRessourceDansVMTez(tta.indexRessource)][t-1]=0;
 			}
 		}
@@ -371,5 +370,15 @@ public class Cloud {
 		for(ClasseClients c : listeClassesClient){
 			c.requeteTezEnAttente.clear();
 		}
+	}
+	
+	public RequeteTez getRequete(int indexRequete) {
+		for(ClasseClients c:this.listeClassesClient) {
+			for(RequeteTez r:c.requeteTezEnAttente) {
+				if(r.index==indexRequete)
+					return r;
+			}
+		}
+		return null;
 	}
 }

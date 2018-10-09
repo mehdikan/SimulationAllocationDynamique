@@ -1,8 +1,11 @@
-package AllocationStatique;
+package PlanAllocation;
+
+import Requetes.RequeteTez;
 
 public class TrancheTempsAlloue {
 	public int indexRessource;
 	public int indexRequete;
+	public RequeteTez requete;
 	public int indexStage;
 	public int indexTache;
 	public int dateDebut;
@@ -11,6 +14,7 @@ public class TrancheTempsAlloue {
 	public TrancheTempsAlloue(int indexRessource,int indexRequete,int indexStage,int indexTache,int dateDebut,int dateFin){
 		this.indexRessource=indexRessource;
 		this.indexRequete=indexRequete;
+		this.requete=requete;
 		this.indexStage=indexStage;
 		this.indexTache=indexTache;
 		this.dateDebut=dateDebut;

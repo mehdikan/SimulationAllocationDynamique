@@ -3,8 +3,8 @@ package Types;
 import Requetes.*;
 
 public class StagesKey {
-    private final StageTez stage1;
-    private final StageTez stage2;
+    public final StageTez stage1;
+    public final StageTez stage2;
 
     public StagesKey(StageTez stage1, StageTez stage2) {
         this.stage1 =stage1;

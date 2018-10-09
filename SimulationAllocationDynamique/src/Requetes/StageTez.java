@@ -34,7 +34,7 @@ public class StageTez {
 		
 		this.groupesTezTaches=new ArrayList<GroupeTachesTez>();
 		for(int i=0;i<nombreTachesTez;i++){
-			this.groupesTezTaches.add(new GroupeTachesTez(this,dureeTacheTez));
+			this.groupesTezTaches.add(new GroupeTachesTez(this,dureeTacheTez,i));
 		}
 	}
 }

@@ -1,4 +1,4 @@
-package Output;
+package Types;
 
 import java.io.IOException;
 import java.io.Writer;

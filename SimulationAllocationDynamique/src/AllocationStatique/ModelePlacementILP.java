@@ -15,7 +15,7 @@ import ParametresGlobeaux.*;
 import Requetes.*;
 import Infrastructure.*;
 
-public class ModelePlacementGLPKTEZ  implements GlpkCallbackListener{
+public class ModelePlacementILP  implements GlpkCallbackListener{
 	Cloud cloud;
 	int nbStages;
 	int T;
@@ -50,7 +50,7 @@ public class ModelePlacementGLPKTEZ  implements GlpkCallbackListener{
 	
 	Cout cout;
 	
-	public ModelePlacementGLPKTEZ(Cloud cloud,Cout cout){
+	public ModelePlacementILP(Cloud cloud,Cout cout){
 		////////////////////////
 		this.cout=cout;
 		this.cloud=cloud;

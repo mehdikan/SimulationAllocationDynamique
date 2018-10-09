@@ -1,12 +1,14 @@
 package AllocationStatique;
 
 import org.gnu.glpk.*;
+
 import ParametresGlobeaux.*;
+import PlanAllocation.PlanStatique;
+import PlanAllocation.TrancheTempsAlloue;
 import Requetes.*;
 import Infrastructure.*;
-import Output.*;
 
-public class ModeleOrdonnancementGLPKTez implements GlpkCallbackListener{
+public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 	glp_prob lp;
 	Cloud cloud;
 	int nbStages;
@@ -30,7 +32,7 @@ public class ModeleOrdonnancementGLPKTez implements GlpkCallbackListener{
 	
 	public Cout cout;
 	
-	public ModeleOrdonnancementGLPKTez(Cloud cloud,Cout cout,int AIn[][]){
+	public ModeleOrdonnancementILP(Cloud cloud,Cout cout,int AIn[][]){
 		////////////////////////
 		this.cout=cout;
 		this.cloud=cloud;

@@ -1,4 +1,4 @@
-package AllocationStatique;
+package ParametresGlobeaux;
 
 import ParametresGlobeaux.*;
 

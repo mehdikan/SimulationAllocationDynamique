@@ -12,6 +12,7 @@ public class GroupeTachesTez {
 	public int tempsDeclanchement;
 	public ArrayList<GroupeTachesTez> dependances;
 	public int index;
+	public int indexDansStage;
 	public int dateFin;
 	public int duree;
 	public int ordre=0;
@@ -32,7 +33,7 @@ public class GroupeTachesTez {
 		this.dateFin=this.dateFinBack;
 	}
 	
-	public GroupeTachesTez(StageTez stage,int duree){
+	public GroupeTachesTez(StageTez stage,int duree,int indexDansStage){
 		this.stage=stage;
 		this.duree=duree;
 		this.fini=0;
@@ -40,6 +41,7 @@ public class GroupeTachesTez {
 		this.dependances=new ArrayList<GroupeTachesTez>();
 		index=VariablesGlobales.indextachestez;
 		VariablesGlobales.indextachestez++;
+		this.indexDansStage=indexDansStage;
 	}
 	
 	public double quantiteTotalOutput(Cloud cloud){

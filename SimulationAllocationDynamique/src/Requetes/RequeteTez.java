@@ -13,7 +13,7 @@ public class RequeteTez {
 	public int dateFinReelle;
 	public int tempsGMPT=0;
 	Map<StagesKey, Integer> quantiteTransfertStages;
-	Map<StagesKey, Integer> typeLien;
+	public Map<StagesKey, Integer> typeLien;
 	//public double quantiteStockeApresStage;
 	
 	public RequeteTez(double poids,int dateLimite){
@@ -64,6 +64,13 @@ public class RequeteTez {
 	
 	public StageTez getStage(int i){
 		return this.listeStages.get(i);
+	}
+	
+	public StageTez getStageByGlobalIndex(int i){
+		for(StageTez stage:this.listeStages) {
+			if(i==stage.indexStage) return stage;
+		}
+		return null;
 	}
 	
 	public int getQuantiteTransfertStages(StageTez stage1,StageTez stage2){
