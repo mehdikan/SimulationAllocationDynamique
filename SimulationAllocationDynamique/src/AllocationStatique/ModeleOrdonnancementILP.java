@@ -7,6 +7,7 @@ import PlanAllocation.PlanStatique;
 import PlanAllocation.TrancheTempsAlloue;
 import Requetes.*;
 import Infrastructure.*;
+import Modeles.ModeleCout;
 
 public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 	glp_prob lp;
@@ -17,42 +18,47 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 	int T;
 	double P[];
 	int D[];
-	int Dt[];
+	int Dt_max[];
+	int Dt_traitement[][];
+	int Dt_traitement_et_communication[][];
 	int A[][];
 	int F[][];
 	int seq[][];
 	int pip[][];
-	double Ws;
-	double q[];
+	//double Ws;
+	//double q[];
+	double quantiteRecue[];
 	
 	int indexDebR;
 	int indexDebC;
 	
 	boolean bonneSolutionTrouve=false;
 	
-	public Cout cout;
+	public ModeleCout modeleCout;
 	
-	public ModeleOrdonnancementILP(Cloud cloud,Cout cout,int AIn[][]){
+	public ModeleOrdonnancementILP(Cloud cloud,ModeleCout modeleCout,int AIn[][]){
 		////////////////////////
-		this.cout=cout;
+		this.modeleCout=modeleCout;
 		this.cloud=cloud;
 		nbStages=cloud.getNbStages();                
 		nbTezSlots=VariablesGlobales.tezSlotsIndex;			 	
 		T=VariablesGlobales.T;
-		Ws=VariablesGlobales.Pstor;
 		////////////////////////
 		
 		nbTezTasks=new int[nbStages];
-		q=new double[nbStages];
+		quantiteRecue=new double[nbStages];
 		
 		
 		////////////////////////
 		for(ClasseClients c : cloud.listeClassesClient){
 		for(RequeteTez r : c.requeteTezEnAttente){
-			for(StageTez stage : r.listeStages){
-				nbTezTasks[stage.indexStage]=stage.nombreTachesTez;
-				q[stage.indexStage]=stage.quantiteStockeApresStage;
-				//System.out.println("=======================> "+Ws);
+			for(StageTez stage1 : r.listeStages){
+				nbTezTasks[stage1.indexStage]=stage1.nombreTachesTez;
+				quantiteRecue[stage1.indexStage]=0;
+				for(StageTez stage2 : r.listeStages){
+					if(r.getLien(stage2,stage1)==1)
+						quantiteRecue[stage1.indexStage]+=stage2.quantiteStockeApresStage*stage2.nombreTachesTez;
+				}
 			}
 		}
 		}
@@ -60,11 +66,15 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 		
 		P=new double[nbStages];
 		D=new int[nbStages];
-		Dt=new int[nbStages];
+		Dt_max=new int[nbStages];
+		Dt_traitement=new int[nbStages][];
+		Dt_traitement_et_communication=new int[nbStages][];
 		A=new int[nbStages][];
-		for(int i=0;i<nbStages;i++)
-		A[i]=new int[nbTezTasks[i]];
-		
+		for(int i=0;i<nbStages;i++) {
+			A[i]=new int[nbTezTasks[i]];
+			Dt_traitement[i]=new int[nbTezTasks[i]];
+			Dt_traitement_et_communication[i]=new int[nbTezTasks[i]];
+		}
 		F=new int[nbTezSlots][T];
 		seq=new int[nbStages][nbStages];
 		pip=new int[nbStages][nbStages];
@@ -78,7 +88,13 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 		for(ClasseClients c : cloud.listeClassesClient){
 			for(RequeteTez rq : c.requeteTezEnAttente){
 				for(StageTez stage1 : rq.listeStages){
-					Dt[stage1.indexStage]=stage1.dureeTacheTez;
+					Dt_max[stage1.indexStage]=0;
+					for(GroupeTachesTez tache: stage1.groupesTezTaches) {
+						Dt_max[stage1.indexStage]=Math.max(Dt_max[stage1.indexStage], stage1.dureeTacheTez+tache.dureeCommunication);
+						Dt_traitement[stage1.indexStage][tache.indexDansStage]=stage1.dureeTacheTez;
+						Dt_traitement_et_communication[stage1.indexStage][tache.indexDansStage]=stage1.dureeTacheTez+tache.dureeCommunication;
+					}
+					//Dt[stage1.indexStage]=stage1.dureeTacheTez;
 					D[stage1.indexStage]=rq.dateLimite;
 					if(stage1==rq.stageFinal) P[stage1.indexStage]=rq.poids;
 					else P[stage1.indexStage]=0;
@@ -175,13 +191,13 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
             ind = GLPK.new_intArray(3);
             val = GLPK.new_doubleArray(3);
             int contIndex=1;
-            for(int i=0;i<nbStages;i++){
-				for(int t=0;t<T;t++){				
-					for(int r=0;r<nbTezTasks[i];r++){
+            for(int i=0;i<nbStages;i++){		
+				for(int r=0;r<nbTezTasks[i];r++){
+					for(int t=Dt_traitement_et_communication[i][r];t<T;t++){		
 						GLPK.glp_add_rows(lp, 1);
 						GLPK.glp_set_row_name(lp, contIndex, "c"+contIndex);
 						GLPK.glp_set_row_bnds(lp, contIndex, GLPKConstants.GLP_LO, 1, 1);
-			            GLPK.intArray_setitem(ind, 1, getXIndex(i,r,t));
+			            GLPK.intArray_setitem(ind, 1, getXIndex(i,r,t-Dt_traitement_et_communication[i][r]));
 			            GLPK.intArray_setitem(ind, 2, getRIndex(i,t));
 			            GLPK.doubleArray_setitem(val, 1, 1);
 			            GLPK.doubleArray_setitem(val, 2, 1);
@@ -216,13 +232,13 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
             		if(seq[i][j]>0) {
 	                	for(int m=0;m<nbTezTasks[i];m++) {
 	                		for(int r=0;r<nbTezTasks[j];r++) {
-	                			for(int t=0;t<T;t++) {
+	                			for(int t=0;t<T-Dt_traitement[i][m];t++) {
 	                				GLPK.glp_add_rows(lp, 1);
 	                				GLPK.glp_set_row_name(lp, contIndex, "c"+contIndex);
 	                				GLPK.glp_set_row_bnds(lp, contIndex, GLPKConstants.GLP_UP, 1-seq[i][j], 1-seq[i][j]);
 	                				GLPK.intArray_setitem(ind, 1, getXIndex(i,m,t));
-		      			            GLPK.intArray_setitem(ind, 2, getXIndex(j,r,t));
-		      			            GLPK.intArray_setitem(ind, 3, getCIndex(i,m,t));
+		      			            GLPK.intArray_setitem(ind, 2, getXIndex(j,r,t+Dt_traitement[i][m]));
+		      			            GLPK.intArray_setitem(ind, 3, getCIndex(j,r,t+Dt_traitement[i][m]));
 		      			            GLPK.doubleArray_setitem(val, 1, seq[i][j]);
 		      			            GLPK.doubleArray_setitem(val, 2, -seq[i][j]);
 		      			            GLPK.doubleArray_setitem(val, 3, -1);
@@ -267,10 +283,10 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
     				int nbElement=0;
     				for(int i=0;i<nbStages;i++){
     					for(int m=0;m<nbTezTasks[i];m++){
-    						if(A[i][m]==k && t-Dt[i]>=1){
+    						if(A[i][m]==k && t-Dt_traitement_et_communication[i][m]>=1){
     							nbElement+=2;
     						}
-    						else if(A[i][m]==k && t-Dt[i]<1){
+    						else if(A[i][m]==k && t-Dt_traitement_et_communication[i][m]<1){
     							nbElement+=1;
     						}
     					}
@@ -283,15 +299,15 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 			        int iii=1;
     				for(int i=0;i<nbStages;i++){
     					for(int m=0;m<nbTezTasks[i];m++){
-    						if(A[i][m]==k && t-Dt[i]>=1){
+    						if(A[i][m]==k && t-Dt_traitement_et_communication[i][m]>=1){
       						    GLPK.intArray_setitem(ind, iii, getXIndex(i,m,t));
       						    GLPK.doubleArray_setitem(val, iii, 1);
       						    iii++;
-      						    GLPK.intArray_setitem(ind, iii, getXIndex(i,m,t-Dt[i]));
+      						    GLPK.intArray_setitem(ind, iii, getXIndex(i,m,t-Dt_traitement_et_communication[i][m]));
     						    GLPK.doubleArray_setitem(val, iii, -1);
     						    iii++;
     						}
-    						else if(A[i][m]==k && t-Dt[i]<1){
+    						else if(A[i][m]==k && t-Dt_traitement_et_communication[i][m]<1){
     							GLPK.intArray_setitem(ind, iii, getXIndex(i,m,t));
       						    GLPK.doubleArray_setitem(val, iii, 1);
       						    iii++;
@@ -308,14 +324,14 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
     			  for(int m=0;m<nbTezTasks[i];m++){
     				  for(int r=0;r<nbTezTasks[j];r++){	
     					  for(int t=0;t<T;t++){
-    						  if(i!=j && t-Dt[i]>=1){
+    						  if(i!=j && t-Dt_traitement_et_communication[i][m]>=1){
     							    ind = GLPK.new_intArray(3);
     	  				            val = GLPK.new_doubleArray(3);  
     	  							GLPK.glp_add_rows(lp, 1);
     	  							GLPK.glp_set_row_name(lp, contIndex, "c"+contIndex);
     	  							GLPK.glp_set_row_bnds(lp, contIndex, GLPKConstants.GLP_UP, 1-seq[i][j], 1-seq[i][j]);
     	  						    GLPK.intArray_setitem(ind, 1, getXIndex(j,r,t));
-    	  						    GLPK.intArray_setitem(ind, 2, getXIndex(i,m,t-Dt[i]));
+    	  						    GLPK.intArray_setitem(ind, 2, getXIndex(i,m,t-Dt_traitement_et_communication[i][m]));
     	  						    GLPK.doubleArray_setitem(val, 1, 1);
     	  						    GLPK.doubleArray_setitem(val, 2, -1);
     	  						    GLPK.glp_set_mat_row(lp, contIndex, 2, ind, val);
@@ -331,7 +347,7 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
     			for(int j=0;j<nbStages;j++){
 				  for(int r=0;r<nbTezTasks[j];r++){	
 					  for(int t=0;t<T;t++){
-						  if(i!=j && t-Dt[i]<1){
+						  if(i!=j && t-Dt_max[i]<1){
 							ind = GLPK.new_intArray(2);
   				            val = GLPK.new_doubleArray(2);  
   							GLPK.glp_add_rows(lp, 1);
@@ -397,9 +413,9 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
             }            
             index=indexDebR;
             for(int i=0;i<nbStages;i++){
-				for(int t=0;t<T;t++){
-					if(t>D[i]-Dt[i]){
-						GLPK.glp_set_obj_coef(lp, index, P[i]);
+				for(int t=0;t<T;t++){				
+					if(t>D[i]){
+						GLPK.glp_set_obj_coef(lp, index, ModeleCout.prixUnitePenalites*P[i]);
 					}
 					index++;
 				}
@@ -408,7 +424,7 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
             for(int i=0;i<nbStages;i++) {
             	for(int m=0;m<nbTezTasks[i];m++) {
             		for(int t=0;t<T;t++){
-            			GLPK.glp_set_obj_coef(lp, index, Ws*q[i]);
+            			GLPK.glp_set_obj_coef(lp, index, ModeleCout.prixUniteDisque*quantiteRecue[i]);
             		}
             		index++;
             	}
@@ -426,7 +442,8 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
             if (ret == 0 || bonneSolutionTrouve) {
                 //write_mip_solution(lp);
             	//afficher(lp);
-            	gantt=ecrireResultat(lp);
+            	
+            	gantt=ecrireResultatEtCalculCoutsPenaliteDisque(lp);
             } else {
             	if(VariablesGlobales.verbose) System.out.println("The problem could not be solved");
             };
@@ -464,7 +481,7 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
         }
     }
 	
-	public PlanStatique ecrireResultat(glp_prob lp){	
+	public PlanStatique ecrireResultatEtCalculCoutsPenaliteDisque(glp_prob lp){	
 		String name;
 		double val;
 		int Req[];
@@ -479,7 +496,6 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 		}
 		
 		if(VariablesGlobales.verbose) System.out.println("Coût ordonnancement :"+GLPK.glp_mip_obj_val(lp));
-		this.cout.coutPenaliteStockage=GLPK.glp_mip_obj_val(lp);
 		int index=1;
 		if(VariablesGlobales.verbose) System.out.println("X = ");
 		for(int i=0;i<nbStages;i++){
@@ -499,6 +515,7 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 		}	
 		
 		index=this.indexDebC;
+		modeleCout.coutDisque=0;
 		if(VariablesGlobales.verbose) System.out.println("C = ");
 		for(int i=0;i<nbStages;i++){
         	for(int j=0;j<nbTezTasks[i];j++){
@@ -508,6 +525,7 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 		            val  = GLPK.glp_mip_col_val(lp, index);
 		            if(VariablesGlobales.verbose) System.out.print(val+" ");
 		            index++;
+		            modeleCout.coutDisque+=val*quantiteRecue[i];
         		}
         		if(VariablesGlobales.verbose) System.out.println(")");
         		if(VariablesGlobales.verbose) System.out.println("");
@@ -517,15 +535,18 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 	    int debut,fin;
 	    PlanStatique gantt=new PlanStatique();
 	    
+	    modeleCout.coutPenalite=0;
+	    double finStage;
 	    for(int i=0;i<nbStages;i++){
+	    	finStage=0;
 			for(int j=0;j<nbTezTasks[i];j++){
 				debut=0;
 				fin=T-1;
 				for(int t=0;t<T-1;t++){
-					if(t-Dt[i]>=0){
-						if((GLPK.glp_mip_col_val(lp, getXIndex(i,j,t))-GLPK.glp_mip_col_val(lp, getXIndex(i,j,t-Dt[i])))< (GLPK.glp_mip_col_val(lp, getXIndex(i,j,t+1))-GLPK.glp_mip_col_val(lp,getXIndex(i,j,t+1-Dt[i]))))
+					if(t-Dt_traitement_et_communication[i][j]>=0){
+						if((GLPK.glp_mip_col_val(lp, getXIndex(i,j,t))-GLPK.glp_mip_col_val(lp, getXIndex(i,j,t-Dt_traitement_et_communication[i][j])))< (GLPK.glp_mip_col_val(lp, getXIndex(i,j,t+1))-GLPK.glp_mip_col_val(lp,getXIndex(i,j,t+1-Dt_traitement_et_communication[i][j]))))
 							debut=t+1;
-						else if((GLPK.glp_mip_col_val(lp, getXIndex(i,j,t))-GLPK.glp_mip_col_val(lp, getXIndex(i,j,t-Dt[i])))>(GLPK.glp_mip_col_val(lp, getXIndex(i,j,t+1))-GLPK.glp_mip_col_val(lp, getXIndex(i,j,t+1-Dt[i]))) )
+						else if((GLPK.glp_mip_col_val(lp, getXIndex(i,j,t))-GLPK.glp_mip_col_val(lp, getXIndex(i,j,t-Dt_traitement_et_communication[i][j])))>(GLPK.glp_mip_col_val(lp, getXIndex(i,j,t+1))-GLPK.glp_mip_col_val(lp, getXIndex(i,j,t+1-Dt_traitement_et_communication[i][j]))) )
 							fin=t;
 					}
 					else{
@@ -535,17 +556,22 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 							fin=t;
 						else if(GLPK.glp_mip_col_val(lp, getXIndex(i,j,0))==1){
 							debut=1;
-							fin=Dt[i];
+							fin=Dt_traitement_et_communication[i][j];
 						}
 					}
 				}
-				//System.out.println("--------------------------------------------# "+debut);
+				finStage=Math.max(finStage, fin);
 				gantt.ajouterTrancheTemps(new TrancheTempsAlloue(A[i][j], Req[i], i, j, debut, fin));
+			}
+			
+			if(P[i]>0 && finStage>D[i]) {
+				modeleCout.coutPenalite+=P[i]*(finStage-D[i]);
 			}
 		}
 	    
 	    return gantt;
 	}
+	
 	
 	public int getXIndex(int ii, int jj,int tt){
 		int index=0;

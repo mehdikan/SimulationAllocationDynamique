@@ -73,11 +73,14 @@ public class Cloud {
 					for(MachinePhysique p2:listeMachinesPhysique){
 						for(VM vm2:p2.ListeVMs){
 							for(GroupeRessources t2: vm2.groupeTezRessources){
-								if(vm1==vm2){
+								if(p1==p2 && vm1==vm2){
 									distanceSlots.put(new IntKey(t1.index,t1.index), 0);
 								}
-								else{
+								else if (p1==p2 && vm1!=vm2){
 									distanceSlots.put(new IntKey(t1.index,t2.index), 1);
+								}
+								else {
+									distanceSlots.put(new IntKey(t1.index,t2.index), 2);
 								}
 							}
 						}

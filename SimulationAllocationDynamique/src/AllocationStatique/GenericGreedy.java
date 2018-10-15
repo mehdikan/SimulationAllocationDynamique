@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.TreeSet;
 import Infrastructure.*;
+import Modeles.ModeleCommunication;
+import Modeles.ModeleCout;
 import ParametresGlobeaux.*;
 import Requetes.*;
 import PlanAllocation.*;
@@ -15,10 +17,10 @@ public abstract class GenericGreedy {
 	ArrayList<GroupeTachesTez> allGroupsTaches;
 	ArrayList<GroupeRessources> allGroupsSlots;
 	TreeSet<EvenementFinTachesTez> evenements;
-	double coutComm=-1;
-	double coutProc=-1;
-	double coutMem=-1;
-	double coutStor=-1;
+	//double coutComm=-1;
+	//double coutProc=-1;
+	//double coutMem=-1;
+	//double coutStor=-1;
 	public int ordre=1;
 	
 	public GenericGreedy(){}
@@ -47,21 +49,14 @@ public abstract class GenericGreedy {
 		}
 	}
 	
-	public Cout lancer(){
+	public ModeleCout lancer(){
 		placer();
 		for(GroupeTachesTez tache:allGroupsTaches){
 			tache.fini=0;
 		}
-		Cout cout=ordonnancer(false);
+		ModeleCommunication.rajouterTempsCommunicationsGreedy(cloud);
+		ModeleCout cout=ordonnancer(false);
 		System.out.println("temps Total : "+cout.tempsExecTotal);
-		System.out.println("temps Moyen par Requete : "+cout.tempsExecMoyenRequete);
-		System.out.println("Cout Proc : "+cout.coutProcesseur);
-		System.out.println("Cout Mem : "+cout.coutMemoire);
-		System.out.println("Cout Stock : "+cout.coutStockage);
-		System.out.println("Cout Comm : "+cout.coutComm);
-		System.out.println("Cout Penalite : "+cout.coutPenalite);
-		System.out.println("Cout Ressources : "+cout.coutRess());
-		System.out.println("Cout Total : "+cout.coutTotal());
 		return cout;
 	}
 	
@@ -125,16 +120,17 @@ public abstract class GenericGreedy {
 	
 	public abstract GroupeRessources affecter(GroupeTachesTez n,ArrayList<GroupeRessources> candidates);
 	
-	public Cout ordonnancer(boolean partiel){
+	public ModeleCout ordonnancer(boolean partiel){
 		EvenementFinTachesTez evCourant;
 		int tCourant;
 		evenements=new TreeSet<EvenementFinTachesTez>();
 		evenements.add(new EvenementFinTachesTez(1,null,null));
 		GroupeTachesTez elu;
 		int tempsMax=0;
-		Cout c=new Cout();
+		ModeleCout c=new ModeleCout();
 		
 		if(partiel) this.stock();
+
 		while(!evenements.isEmpty() )
 		{
 			evCourant=evenements.first();
@@ -198,12 +194,12 @@ public abstract class GenericGreedy {
 						if(trouv) break;
 					};
 
-					elu.ressource.vm.setAlloueTez(indexRessouces,tCourant,elu.stage.dureeTacheTez);
+					elu.ressource.vm.setAlloueTez(indexRessouces,tCourant,elu.stage.dureeTacheTez+elu.dureeCommunication);
 					 Iterator<EvenementFinTachesTez> iterator = evenements.iterator(); 
 					 trouv=false;
 				      while (iterator.hasNext()){
 				    	  EvenementFinTachesTez ev=(EvenementFinTachesTez) iterator.next();
-				         if(ev.instant==tCourant+elu.stage.dureeTacheTez){
+				         if(ev.instant==tCourant+elu.stage.dureeTacheTez+elu.dureeCommunication){
 				        	 trouv=true;
 				        	 ev.ressorceALiberer.add(elu.ressource);
 				        	 ev.tachesFinies.add(elu);
@@ -211,7 +207,7 @@ public abstract class GenericGreedy {
 				         }
 				      }
 				      if(!trouv){
-				    	  evenements.add(new EvenementFinTachesTez(tCourant+elu.stage.dureeTacheTez,elu.ressource,elu));
+				    	  evenements.add(new EvenementFinTachesTez(tCourant+elu.stage.dureeTacheTez+elu.dureeCommunication,elu.ressource,elu));
 				      }
 				      allGroupsTaches.remove(elu);
 
@@ -259,7 +255,7 @@ public abstract class GenericGreedy {
 				}
 				if(trouv) break;
 			}
-			if(tache.ressource!=null && tache.pret(cloud,instantCourant) && tache.ressource.vm.verifierDisponibiliteTez(indexRessouces,instantCourant,tache.stage.dureeTacheTez)){
+			if(tache.ressource!=null && tache.pret(cloud,instantCourant) && tache.ressource.vm.verifierDisponibiliteTez(indexRessouces,instantCourant,tache.stage.dureeTacheTez+tache.dureeCommunication)){
 				if(elu==null 
 						|| tache.ordre<elu.ordre)
 				{
@@ -304,18 +300,13 @@ public abstract class GenericGreedy {
 		return coutTotal;
 	}
 	
-	public Cout calculCout(boolean partiel){
-		Cout c=new Cout();
+	public ModeleCout calculCout(boolean partiel){
+		ModeleCout modeleCout=new ModeleCout();
 		ArrayList<GroupeTachesTez> allGroupsTaches;
 		ArrayList<GroupeRessources> allGroupsSlots;
 		allGroupsTaches=new ArrayList<GroupeTachesTez>();
 		allGroupsSlots=new ArrayList<GroupeRessources>();
 		
-		double Pcomm=VariablesGlobales.Pcomm;
-		double Pproc=VariablesGlobales.Pproc;
-		double Pmem=VariablesGlobales.Pmem;
-		double Pstor=VariablesGlobales.Pstor;
-		double Ppenalites=VariablesGlobales.Ppenalites;
 		
 		for(ClasseClients cc : cloud.listeClassesClient){
 			for(RequeteTez r : cc.requeteTezEnAttente){
@@ -326,7 +317,6 @@ public abstract class GenericGreedy {
 				}
 			}
 		}
-		
 		for(MachinePhysique mp:cloud.listeMachinesPhysique){
 			for(VM vm:mp.ListeVMs){
 				for(GroupeRessources tache: vm.groupeTezRessources){
@@ -341,60 +331,32 @@ public abstract class GenericGreedy {
 				W[i][j]=0;
 			}
 		}
-			
-		if(partiel){
-			for(GroupeTachesTez tache1:allGroupsTaches){
-				if(tache1.ressource!=null){
-					for(GroupeTachesTez tache2:allGroupsTaches){
-						if(tache2.ressource!=null && tache1.stage.requeteTez.index==tache2.stage.requeteTez.index){
-							if(tache1.stage.requeteTez.getQuantiteTransfertStages(tache1.stage, tache2.stage)>0){
-								W[tache1.ressource.index][tache2.ressource.index]=Math.max(W[tache1.ressource.index][tache2.ressource.index], tache1.stage.requeteTez.getQuantiteTransfertStages(tache1.stage, tache2.stage));
-							}
-							if(tache1.stage.requeteTez.getQuantiteTransfertStages(tache2.stage, tache1.stage)>0){
-								W[tache2.ressource.index][tache1.ressource.index]=Math.max(W[tache2.ressource.index][tache1.ressource.index], tache1.stage.requeteTez.getQuantiteTransfertStages(tache2.stage, tache1.stage));
-							}
+		for(GroupeTachesTez tache1:allGroupsTaches){
+			if(tache1.ressource!=null){
+				for(GroupeTachesTez tache2:allGroupsTaches){
+					if(tache2.ressource!=null && tache1.stage.requeteTez.index==tache2.stage.requeteTez.index){
+						if(tache1.stage.requeteTez.getQuantiteTransfertStages(tache1.stage, tache2.stage)>0){
+							W[tache1.ressource.index][tache2.ressource.index]+=tache1.stage.requeteTez.getQuantiteTransfertStages(tache1.stage, tache2.stage);
 						}
 					}
 				}
 			}
 		}
-		else{
-			for(GroupeTachesTez tache1:allGroupsTaches){
-				if(tache1.ressource!=null){
-					for(GroupeTachesTez tache2:allGroupsTaches){
-						if(tache2.ressource!=null && tache1.stage.requeteTez.index==tache2.stage.requeteTez.index){
-							if(tache1.stage.requeteTez.getQuantiteTransfertStages(tache1.stage, tache2.stage)>0){
-								W[tache1.ressource.index][tache2.ressource.index]+=tache1.stage.requeteTez.getQuantiteTransfertStages(tache1.stage, tache2.stage);
-							}
-							if(tache1.stage.requeteTez.getQuantiteTransfertStages(tache2.stage, tache1.stage)>0){
-								W[tache2.ressource.index][tache1.ressource.index]+=tache1.stage.requeteTez.getQuantiteTransfertStages(tache2.stage, tache1.stage);
-							}
-						}
-					}
-				}
-			}
-		}
-		
-		coutComm=0;
+
+		modeleCout.coutComm=0;
 		for(GroupeRessources a:allGroupsSlots){
 			for(GroupeRessources b:allGroupsSlots){
-				coutComm+=W[a.index][b.index]*cloud.getDistanceEntreSlots(a.index, b.index);
+				modeleCout.coutComm+=W[a.index][b.index]*ModeleCout.distanceToPoidsCommunication(cloud.getDistanceEntreSlots(a.index, b.index));
 			}
 		}
-		coutComm*=VariablesGlobales.Pcomm;
-		
-		coutProc=0;
-		coutMem=0;
-		coutStor=0;
+		modeleCout.coutRessources=0;
 		for(GroupeTachesTez tache:allGroupsTaches){
 			if(tache.ressource!=null){
-				coutProc+=tache.ressource.vm.processeurTezSlots*tache.stage.dureeTacheTez;
-				coutMem+=tache.ressource.vm.processeurTezSlots*tache.stage.dureeTacheTez;
-				coutStor+=tache.ressource.vm.processeurTezSlots*tache.stage.dureeTacheTez;
+				//coutProc+=tache.ressource.vm.processeurTezSlots*(tache.stage.dureeTacheTez+tache.dureeCommunication);
+				modeleCout.coutRessources+=tache.ressource.vm.memoireTezSlots*(tache.stage.dureeTacheTez+tache.dureeCommunication);
 			}
 		}
-		
-		/////////////////////////
+
 		
 		for(ClasseClients cc : cloud.listeClassesClient){
 			for(RequeteTez r : cc.requeteTezEnAttente){
@@ -409,91 +371,45 @@ public abstract class GenericGreedy {
 				}
 			}
 		}
-		
-		double coutPenalite=0;
+		modeleCout.coutPenalite=0;
 		for(ClasseClients cc : cloud.listeClassesClient){
 			for(RequeteTez r : cc.requeteTezEnAttente){
 				if(r.dateFinReelle-r.dateLimite>0){
-					coutPenalite+=(r.dateFinReelle-r.dateLimite-1)*r.poids;
-				}
-				else{
-					//if(partiel)
-					//	coutPenalite+=((double)r.dateFinReelle/(double)r.dateLimite)*r.poids;
+					modeleCout.coutPenalite+=(r.dateFinReelle-r.dateLimite-1)*r.poids;
 				}
 			}
-		}
-		
+		}		
 		for(ClasseClients cc : cloud.listeClassesClient){
 			for(RequeteTez r : cc.requeteTezEnAttente){
 					r.dateFinReelle=0;
 			}
 		}
 		
-		c.coutComm=coutComm;
-		c.coutProcesseur=coutProc;
-		c.coutMemoire=coutMem;
-		c.coutStockage=coutStor;
-		c.coutPenalite=coutPenalite;
-		return c;
-	}
-	
-	public void coutPlacementTotal(){
-		for(ClasseClients cc : cloud.listeClassesClient){
-			for(RequeteTez r : cc.requeteTezEnAttente){
-				for(StageTez stage : r.listeStages){
-					for(GroupeTachesTez tache : stage.groupesTezTaches){
-						allGroupsTaches.add(tache);
+		modeleCout.coutDisque=0;
+		for(ClasseClients c : cloud.listeClassesClient){
+			for(RequeteTez r : c.requeteTezEnAttente){
+				for(StageTez stage1 : r.listeStages){
+					double quantiteRecue=0;
+					for(StageTez stage2 : r.listeStages){
+						if(r.getLien(stage2,stage1)==1) {
+							quantiteRecue+=stage2.quantiteStockeApresStage*stage2.nombreTachesTez;
+							for(GroupeTachesTez tache1: stage1.groupesTezTaches){
+								double dureeDisque=0;
+								for(GroupeTachesTez tache2: stage2.groupesTezTaches){
+									dureeDisque=Math.max(dureeDisque, tache1.tempsDeclanchement-(tache2.tempsDeclanchement+stage2.dureeTacheTez));
+								}
+								modeleCout.coutDisque+=dureeDisque*quantiteRecue;
+							}
+						}
 					}
 				}
 			}
 		}
 		
-		for(MachinePhysique mp:cloud.listeMachinesPhysique){
-			for(VM vm:mp.ListeVMs){
-				for(GroupeRessources slot: vm.groupeTezRessources){
-					allGroupsSlots.add(slot);
-				}
-			}
-		}
 		
-		double W[][]=new double[allGroupsSlots.size()][allGroupsSlots.size()];
-		for(int i=0;i<allGroupsSlots.size();i++){
-			for(int j=0;j<allGroupsSlots.size();j++){
-				W[i][j]=0;
-			}
-		}
-			
-		for(GroupeTachesTez tache1:allGroupsTaches){
-			for(GroupeTachesTez tache2:allGroupsTaches){
-				if(tache1.stage.requeteTez.index==tache2.stage.requeteTez.index){
-					W[tache1.ressource.index][tache2.ressource.index]=Math.max(W[tache1.ressource.index][tache2.ressource.index], tache1.stage.requeteTez.getQuantiteTransfertStages(tache1.stage, tache2.stage));
-				}
-			}
-		}
-		
-		coutComm=0;
-		for(GroupeRessources a:allGroupsSlots){
-			for(GroupeRessources b:allGroupsSlots){
-				coutComm+=W[a.index][b.index]*cloud.getDistanceEntreSlots(a.index, b.index);
-			}
-		}
-		coutComm*=VariablesGlobales.Pcomm;
-		
-		coutProc=0;
-		coutMem=0;
-		coutStor=0;
-		for(GroupeTachesTez tache:allGroupsTaches){
-			coutProc+=tache.ressource.vm.processeurTezSlots*tache.stage.dureeTacheTez;
-			coutMem+=tache.ressource.vm.memoireTezSlots*tache.stage.dureeTacheTez;
-			coutStor+=tache.ressource.vm.stockageTezSlots*tache.stage.dureeTacheTez;
-		}
-		
-		System.out.println("Cout communication : "+coutComm);
-		System.out.println("Cout processeur : "+coutProc);
-		System.out.println("Cout mémoire : "+coutMem);
-		System.out.println("Cout stockage : "+coutStor);
-		//return coutComm+coutProc+coutMem+coutStor;
+		return modeleCout;
 	}
+	
 
 	public PlanStatique ecrireResultats(){
 		PlanStatique gantt=new PlanStatique();

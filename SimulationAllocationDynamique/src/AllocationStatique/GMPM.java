@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.TreeSet;
 
 import Infrastructure.*;
+import Modeles.ModeleCout;
 import Requetes.*;
 import PlanAllocation.*;
 import ParametresGlobeaux.*;
@@ -66,15 +67,14 @@ public class GMPM extends GenericGreedy {
 				}
 			}
 			
-			
 			if(!trouv){			
 				n.fini=1;
 				n.ressource=ress;
 
-				Cout cout=ordonnancer(true);
+				ModeleCout cout=ordonnancer(true);
 				//System.out.println("============> "+ress.index+" "+temps);
-				if(meilleurCout==-1 || cout.coutTotal()<meilleurCout){
-					meilleurCout=cout.coutTotal();
+				if(meilleurCout==-1 || cout.prixTotal()<meilleurCout){
+					meilleurCout=cout.prixTotal();
 					ressChoisie=ress;	
 				}
 			}

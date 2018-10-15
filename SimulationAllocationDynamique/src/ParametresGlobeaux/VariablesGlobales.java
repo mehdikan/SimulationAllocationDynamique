@@ -34,11 +34,8 @@ public class VariablesGlobales {
 	public static FileWriter writer_pl2p;
 	
 	public static int T=40;
-	//public static double Pcomm=0.05/4/256;   // 0.05 dollar pour 1go
-	//public static double Pproc=1.5/3/32/6;  // 1.5 dollar l'heure
-	//public static double Pmem=1.5/3/32/6;
-	//public static double Pstor=1.5/3/32/6;
-	public static double Ppenalites=1;
+	public static double tailleFentreTemps=1;
+	
 	public static double PXnonPlacees=10000;
 	public static double PYnonPlacees=10000;
 	public static double coefRepartition=0;
@@ -46,10 +43,7 @@ public class VariablesGlobales {
 	public static double coutActivationRessource=1;
 	public static double coutDesactivationRessource=1;
 	
-	public static double Pcomm=0.00005;   // 0.05 dollar pour 1go
-	public static double Pproc=0.0025;  // 1.5 dollar l'heure
-	public static double Pmem=0.0025;
-	public static double Pstor=0.0025;
+
 
 	public static void init(){
 		jobIndex=0;

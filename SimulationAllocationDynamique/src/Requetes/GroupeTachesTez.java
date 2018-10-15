@@ -16,6 +16,7 @@ public class GroupeTachesTez {
 	public int dateFin;
 	public int duree;
 	public int ordre=0;
+	public int dureeCommunication=0;
 	
 	public int finiBack; // 0 non - 1 oui
 	public int tempsDeclanchementBack;

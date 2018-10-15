@@ -14,6 +14,8 @@ import org.gnu.glpk.glp_tree;
 import ParametresGlobeaux.*;
 import Requetes.*;
 import Infrastructure.*;
+import Modeles.ModeleCommunication;
+import Modeles.ModeleCout;
 
 public class ModelePlacementILP  implements GlpkCallbackListener{
 	Cloud cloud;
@@ -33,7 +35,7 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 	int Dt[];
 	int F[][];  
 
-	double Pcomm,Pproc,Pmem,PXnonPlacees,PYnonPlacees,coefRepartition;
+	double PXnonPlacees,PYnonPlacees,coefRepartition;
 	
 	public int A[][];
 	
@@ -48,17 +50,14 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 	
 	boolean bonneSolutionTrouve=false;
 	
-	Cout cout;
+	ModeleCout modeleCout;
 	
-	public ModelePlacementILP(Cloud cloud,Cout cout){
+	public ModelePlacementILP(Cloud cloud,ModeleCout modeleCout){
 		////////////////////////
-		this.cout=cout;
+		this.modeleCout=modeleCout;
 		this.cloud=cloud;
 		nbStages=cloud.getNbStages();
 		nbTezSlots=VariablesGlobales.tezSlotsIndex;
-		Pcomm=VariablesGlobales.Pcomm;
-		Pproc=VariablesGlobales.Pproc;
-		Pmem=VariablesGlobales.Pmem;
 		PXnonPlacees=VariablesGlobales.PXnonPlacees;
 		PYnonPlacees=VariablesGlobales.PYnonPlacees;
 		coefRepartition=VariablesGlobales.coefRepartition;
@@ -322,13 +321,13 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 			GLPK.glp_set_obj_coef(lp, 0,totalNbTezTasks*PXnonPlacees);
 			for(int m=0;m<nbTezSlots;m++){
 				for(int r=0;r<nbTezSlots;r++){
-					GLPK.glp_set_obj_coef(lp, getZIndex(m,r),Pcomm*DIST[m][r]);
+					GLPK.glp_set_obj_coef(lp, getZIndex(m,r),ModeleCout.prixUniteCommunication*ModeleCout.distanceToPoidsCommunication(DIST[m][r]));
 				}
 			}
 			for(int i=0;i<nbStages;i++){
 				for(int m=0;m<nbTezTasks[i];m++){
 					for(int a=0;a<nbTezSlots;a++){
-						GLPK.glp_set_obj_coef(lp, getXIndex(i,m,a),Dt[i]*(Pproc*PROCS[a]+Pmem*MEMS[a])-PXnonPlacees);
+						GLPK.glp_set_obj_coef(lp, getXIndex(i,m,a),Dt[i]*(ModeleCout.prixUniteRessources*MEMS[a])-PXnonPlacees);
 					}
 				}
 			}
@@ -396,8 +395,9 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 		}
 		System.out.println("Nombre de taches non placees : "+nb+"/"+totalNbTezTasks);
 	
-		double coutTotalCommunication=0;
+		double coutRessourcesCauseCommunication=ModeleCommunication.rajouterTempsCommunicationsILP(cloud,this);
 		
+		double coutTotalCommunication=0;
 		for(int i=0;i<nbStages;i++){
 			for(int m=0;m<nbTezTasks[i];m++){
 				for(int j=0;j<nbStages;j++){
@@ -405,7 +405,7 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 						for(int a=0;a<nbTezSlots;a++){
 							for(int b=0;b<nbTezSlots;b++){
 								if(GLPK.glp_mip_col_val(lp, getXIndex(i,m,a))==1 && GLPK.glp_mip_col_val(lp, getXIndex(j,r,b))==1){
-									coutTotalCommunication+=DIST[r][m]*Q[i][j];
+									coutTotalCommunication+=ModeleCout.distanceToPoidsCommunication(DIST[a][b])*Q[i][j];
 								}
 							}
 						}
@@ -413,26 +413,25 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 				}
 			}
 		}
-		coutTotalCommunication*=VariablesGlobales.Pcomm;
 		
-		double coutTotalProcesseur=0;
+		//double coutTotalProcesseur=0;
 		double coutTotalMemoire=0;
 		for(int i=0;i<nbStages;i++){
 			for(int m=0;m<nbTezTasks[i];m++){
 				for(int a=0;a<nbTezSlots;a++){
-					coutTotalProcesseur+=GLPK.glp_mip_col_val(lp, getXIndex(i,m,a))*Dt[i]*PROCS[a];
+					//coutTotalProcesseur+=GLPK.glp_mip_col_val(lp, getXIndex(i,m,a))*Dt[i]*PROCS[a];
 					coutTotalMemoire+=GLPK.glp_mip_col_val(lp, getXIndex(i,m,a))*Dt[i]*MEMS[a];
 				}
 			}
 		}
+		coutTotalMemoire+=coutRessourcesCauseCommunication;
 
-		System.out.println("Cout communication : "+coutTotalCommunication);
-		System.out.println("Cout processeur : "+coutTotalProcesseur);
-		System.out.println("Cout mémoire : "+coutTotalMemoire);
-		System.out.println("Cout Ressources "+(VariablesGlobales.Pproc*coutTotalProcesseur+VariablesGlobales.Pmem*coutTotalMemoire));
-		this.cout.coutComm=coutTotalCommunication;
-		this.cout.coutProcesseur=coutTotalProcesseur;
-		this.cout.coutMemoire=coutTotalMemoire;
+		//System.out.println("Prix communication : "+(ModeleCout.prixUniteCommunication*coutTotalCommunication));
+		//System.out.println("Prix ressourses : "+coutTotalProcesseur);
+		//System.out.println("Cout mémoire : "+coutTotalMemoire);
+		//System.out.println("Prix Ressources "+(ModeleCout.prixUniteRessources*coutTotalMemoire));
+		this.modeleCout.coutComm=coutTotalCommunication;
+		this.modeleCout.coutRessources=coutTotalMemoire;
 	}
 	
 	public void setOutput(glp_prob lp){
