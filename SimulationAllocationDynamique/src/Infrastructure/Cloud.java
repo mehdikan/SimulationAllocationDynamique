@@ -2,9 +2,11 @@ package Infrastructure;
 
 import java.util.*;
 
+import Divers.IntKey;
+
 //import com.sun.javafx.collections.MapAdapterChange;
 
-import Types.*;
+import Divers.*;
 import Requetes.*;
 import ParametresGlobeaux.*;
 import PlanAllocation.PlanStatique;
@@ -322,6 +324,22 @@ public class Cloud {
 			}
 		}
 		return nbNonDisponibles/total;
+	}
+	
+	public void calculQuantiteRecuParTache() {
+		for(ClasseClients c : this.listeClassesClient){
+			for(RequeteTez r : c.requeteTezEnAttente){
+				for(StageTez stage1 : r.listeStages){
+					double quantiteRecue=0;
+					for(StageTez stage2 : r.listeStages){
+						if(r.getLien(stage2,stage1)==1) {
+							quantiteRecue+=stage2.quantiteStockeApresStage*stage2.nombreTachesTez;
+						}
+					}
+					stage1.quantiteRecu=quantiteRecue;
+				}
+			}
+		}
 	}
 	
 	public double nbRessourceNonDispo() {

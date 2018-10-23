@@ -8,53 +8,55 @@ import ParametresGlobeaux.*;
 import PlanAllocation.*;
 import Requetes.*;
 import Infrastructure.*;
-import Modeles.ModeleCout;
+import Modeles.*;
 import Requetes.*;
-import Types.*;
+import Divers.*;
 import Infrastructure.*;
 import AllocationStatique.*;
+import Divers.CSVUtils;
 import AllocationDynamique.*;
 
 public class Main {
 	public static void main(String[] args)  throws IOException{
 		// TODO Auto-generated method stub		
-		int algoStatique=2;
-		
+		int algoStatique=1;
+		int nb=VariablesGlobales.nbTacheParGroupe;
 		Cloud cloud=new Cloud();
 		cloud.listeMachinesPhysique.add(new MachinePhysique());
 		for(int i=0;i<5;i++)
-			cloud.ajouterVM(0,new VM(1,8*1,8*2,8*2));
+			cloud.ajouterVM(0,new VM(1,nb*1,nb*2,nb*2));
 		for(int i=0;i<5;i++)
-			cloud.ajouterVM(0,new VM(1,8*1,8*1,8*1));
+			cloud.ajouterVM(0,new VM(1,nb*1,nb*1,nb*1));
 		cloud.setDefaultDistance();
 
 		cloud.listeClassesClient.add(new ClasseClients());
-		RequeteTez req=new RequeteTez(1,10);
-		req.rajouterStage(new StageTez(req,3,4,8*1,8*2,8*2));
-		req.rajouterStage(new StageTez(req,2,3,8*1,8*1,8*1));
+		RequeteTez req=new RequeteTez(1,25);
+		req.rajouterStage(new StageTez(req,3,4,nb*2,nb*2,nb*2));
+		req.rajouterStage(new StageTez(req,2,3,nb*1,nb*1,0));
 	    req.stageFinal=req.listeStages.get(req.listeStages.size()-1);
 	    req.initLiens();
-	    req.majQuantiteTransfertStages(req.getStage(0), req.getStage(1), 8*2);
+	    req.majQuantiteTransfertStages(req.getStage(0), req.getStage(1), nb*2);
 	    req.majTypeLien(req.getStage(0), req.getStage(1), 1);
 		cloud.listeClassesClient.get(0).requeteTezEnAttente.add(req);
 		
-		req=new RequeteTez(2,10);
-	    req.rajouterStage(new StageTez(req,3,5,8*1,8*2,8*2));
-	    req.rajouterStage(new StageTez(req,3,4,8*1,8*2,8*2));
-	    req.rajouterStage(new StageTez(req,2,3,8*1,8*1,8*1));
+		req=new RequeteTez(1,25);
+	    req.rajouterStage(new StageTez(req,3,5,nb*2,nb*2,nb*2));
+	    req.rajouterStage(new StageTez(req,3,4,nb*2,nb*2,nb*2));
+	    req.rajouterStage(new StageTez(req,2,3,nb*1,nb*1,0));
 	    req.stageFinal=req.listeStages.get(req.listeStages.size()-1);
 	    req.initLiens();
-	    req.majQuantiteTransfertStages(req.getStage(0), req.getStage(1), 8*2);
-	    req.majQuantiteTransfertStages(req.getStage(1), req.getStage(2), 8*2);
+	    req.majQuantiteTransfertStages(req.getStage(0), req.getStage(1), nb*2);
+	    req.majQuantiteTransfertStages(req.getStage(1), req.getStage(2), nb*2);
 	    req.majTypeLien(req.getStage(0), req.getStage(1), 1);
 	    req.majTypeLien(req.getStage(1), req.getStage(2), 1);
 		cloud.listeClassesClient.get(0).requeteTezEnAttente.add(req);
 		
-		PlanAllocation.PlanStatique gantt;
+		cloud.calculQuantiteRecuParTache();
 		
+		PlanAllocation.PlanStatique gantt;
 		if(algoStatique==1) {
 		    VariablesGlobales.writer_pl2p=new FileWriter("cout.csv",true);
-		    ModeleCout modeleCout=new ModeleCout();
+		    ModeleCoutEconomique modeleCout=new ModeleCoutEconomique();
 			ModelePlacementILP modelPlacement=new ModelePlacementILP(cloud,modeleCout);
 			long startTime = System.currentTimeMillis();
 			modelPlacement.resoudre();
@@ -78,7 +80,7 @@ public class Main {
 		    VariablesGlobales.writer_gmpm=new FileWriter("comp63-gmpm.csv",true);
 			GMPM gmpm=new GMPM(cloud);
 			long startTime = System.currentTimeMillis();
-			ModeleCout modeleCout=gmpm.lancer();
+			ModeleCoutEconomique modeleCout=gmpm.lancer();
 			long stopTime = System.currentTimeMillis();
 		    long elapsedTime = stopTime - startTime;
 		    System.out.println("Temps = "+elapsedTime);

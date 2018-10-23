@@ -1,8 +1,7 @@
 package Modeles;
 
-import ParametresGlobeaux.*;
 
-public class ModeleCout {
+public class ModeleCoutEconomique {
 	public static double prixUnitePenalites=2;
 	public static double prixUniteCommunication=0.00005;
 	public static double prixUniteRessources=0.005;

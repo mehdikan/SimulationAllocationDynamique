@@ -6,13 +6,16 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.TreeSet;
 
+import Divers.Statistics;
 import Infrastructure.*;
-import Modeles.ModeleCout;
+import Modeles.*;
 import Requetes.*;
 import PlanAllocation.*;
 import ParametresGlobeaux.*;
 
 public class GMPM extends GenericGreedy {
+	public int affectationStategie=0;
+	public int nextStrategie=0;
 		
 	public GMPM(Cloud cloud){
 		this.cloud=cloud;
@@ -43,45 +46,83 @@ public class GMPM extends GenericGreedy {
 	
 	public GroupeTachesTez next(HashSet<GroupeTachesTez> readyTasks){
 		GroupeTachesTez candidat=null;
-		for(GroupeTachesTez t:readyTasks){
-			if(candidat==null || t.quantiteTotalOutput(cloud)>candidat.quantiteTotalOutput(cloud)){
-				candidat=t;
+		if(nextStrategie==0) {
+			for(GroupeTachesTez t:readyTasks){
+				if(candidat==null || t.stage.quantiteRecu>candidat.stage.quantiteRecu){
+					candidat=t;
+				}
 			}
 		}
+		else {
+			for(GroupeTachesTez t:readyTasks){
+				if(candidat==null 
+						|| t.stage.requeteTez.dateLimite/t.stage.requeteTez.poids > candidat.stage.requeteTez.dateLimite/candidat.stage.requeteTez.poids){
+					candidat=t;
+				}
+			}
+		}
+		nextStrategie=nextStrategie%2;
 		return candidat;
 	}
 	
-
-	
-	
 	public GroupeRessources affecter(GroupeTachesTez n,ArrayList<GroupeRessources> candidates){
 		GroupeRessources ressChoisie=null;
-		double meilleurCout=-1;
-		//System.out.println("=============== Type"+n.type+" "+" R"+n.job.requete.index+" J"+n.job.indexJob+" T"+n.index+"Duree"+n.duree);
-		for(GroupeRessources ress:candidates){
-			boolean trouv=false;
-			
-			for(GroupeTachesTez tache:allGroupsTaches){
-				if(tache.stage==n.stage && tache.ressource==ress){
-					trouv=true;
+		if(affectationStategie==0) {
+			double meilleurCout=-1;
+			for(GroupeRessources ress:candidates){		
+				boolean trouv=false;
+				for(GroupeTachesTez tache:allGroupsTaches){
+					if(tache.stage==n.stage && tache.ressource==ress){
+						trouv=true;
+					}
+				}
+				
+				if(!trouv){			
+					n.fini=1;
+					n.ressource=ress;
+
+					ModeleCoutEconomique cout=ordonnancer(true);
+					if(meilleurCout==-1 || cout.prixCommunication()+cout.prixRessources()+cout.prixDisque()<meilleurCout){
+						meilleurCout= cout.prixCommunication()+cout.prixRessources()+cout.prixDisque();
+						ressChoisie=ress;	
+					}
 				}
 			}
-			
-			if(!trouv){			
-				n.fini=1;
-				n.ressource=ress;
-
-				ModeleCout cout=ordonnancer(true);
-				//System.out.println("============> "+ress.index+" "+temps);
-				if(meilleurCout==-1 || cout.prixTotal()<meilleurCout){
-					meilleurCout=cout.prixTotal();
-					ressChoisie=ress;	
+			n.fini=0;
+			n.ressource=null;
+		}
+		else {
+			HashMap<GroupeRessources,Integer> chargeRessources=new HashMap<GroupeRessources,Integer>();
+			for(GroupeRessources ress:allGroupsSlots){
+				chargeRessources.put(ress, 0);
+			}
+			for(GroupeTachesTez tache:allGroupsTaches){
+				if(tache.ressource!=null){
+					chargeRessources.put(tache.ressource, chargeRessources.get(tache.ressource)+tache.stage.dureeTacheTez);
 				}
+			}
+			double deviation=-1;
+			for(GroupeRessources ress:candidates){
+				chargeRessources.put(ress, chargeRessources.get(ress)+n.stage.dureeTacheTez);
+				Statistics stat=new Statistics(chargeRessources);
+				double var=stat.getVariance();
+				if(deviation==-1 || var<deviation){
+					boolean trouv=false;
+					for(GroupeTachesTez tache:allGroupsTaches){
+						if(tache.stage==n.stage && tache.ressource==ress){
+							trouv=true;
+						}
+					}
+					if(!trouv){
+						deviation=var;
+						ressChoisie=ress;
+					}
+				}
+				chargeRessources.put(ress, chargeRessources.get(ress)-n.stage.dureeTacheTez);
 			}
 		}
-		n.fini=0;
-		n.ressource=null;
-		//System.out.println("???> "+ressChoisie.index);
+		
+		//this.affectationStategie=(this.affectationStategie+1)%2;
 		return ressChoisie;
 	}
 }

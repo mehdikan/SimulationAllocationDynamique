@@ -1,4 +1,4 @@
-package Types;
+package Divers;
 
 import Requetes.*;
 

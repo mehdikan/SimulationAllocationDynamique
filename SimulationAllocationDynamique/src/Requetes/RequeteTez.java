@@ -1,7 +1,9 @@
 package Requetes;
 
 import java.util.*;
-import Types.*;
+
+import Divers.StagesKey;
+import Divers.*;
 import ParametresGlobeaux.*;
 
 public class RequeteTez {
@@ -56,6 +58,14 @@ public class RequeteTez {
 	public void majTypeLien(StageTez s1, StageTez s2,int type)
 	{
 		typeLien.put(new StagesKey(s1,s2),type);
+	}
+	
+	public int dureeIdeal() {
+		int dureeIdeal=0;
+		for(StageTez stage : listeStages) {
+			dureeIdeal+=stage.dureeTacheTez;
+		}
+		return dureeIdeal;
 	}
 	
 	public int nbStages(){

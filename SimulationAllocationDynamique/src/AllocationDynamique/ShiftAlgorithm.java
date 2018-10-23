@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import AllocationStatique.*;
+import Divers.StagesKey;
 import Infrastructure.Cloud;
 import PlanAllocation.PlanStatique;
 import PlanAllocation.TrancheTempsAlloue;
@@ -12,7 +13,6 @@ import Requetes.ClasseClients;
 import Requetes.GroupeTachesTez;
 import Requetes.RequeteTez;
 import Requetes.StageTez;
-import Types.StagesKey;
 
 public class ShiftAlgorithm {
 	

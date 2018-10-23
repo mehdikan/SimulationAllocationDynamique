@@ -27,6 +27,8 @@ public class VariablesGlobales {
 	public static long ordreLiberation=0;
 	public static boolean verbose=true;
 	public static int nbAgents=3;
+	public static int nbTacheParGroupe=8;
+	public static int tailleBlocDonnees=256*1024*1024;
 	
 	public static FileWriter writer_gbrt;
 	public static FileWriter writer_gmpt;

@@ -1,4 +1,4 @@
-package Types;
+package Divers;
 
 public class IntKey {
 	    private final int ressource;

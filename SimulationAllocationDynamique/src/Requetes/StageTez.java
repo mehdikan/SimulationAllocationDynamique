@@ -15,14 +15,17 @@ public class StageTez {
 	public ArrayList<GroupeTachesTez> groupesTezTaches;
 	public long ordreArrive;
 	public double quantiteStockeApresStage;
+	public double quantiteRecu=0;
+	public double donneeInitiale=0;
 	
-	public StageTez(RequeteTez reqTez,int dureeTacheTez, int nombreTachesTez,int processeurTacheTez,int memoireTacheTez,double quantiteStockeApresStage){
+	public StageTez(RequeteTez reqTez,int dureeTacheTez, int nombreTachesTez,int memoireTacheTez,double quantiteStockeApresStage,double donneeInitiale){
 		this.requeteTez=reqTez;
 		this.dureeTacheTez=dureeTacheTez;
 		this.nombreTachesTez=nombreTachesTez;
-		this.processeurTacheTez=processeurTacheTez;
+		this.processeurTacheTez=VariablesGlobales.nbTacheParGroupe;
 		this.memoireTacheTez=memoireTacheTez;
 		this.quantiteStockeApresStage=quantiteStockeApresStage;
+		this.donneeInitiale=donneeInitiale;
 		
 		this.ordreArrive=VariablesGlobales.stageOrdreArrive;
 		VariablesGlobales.stageOrdreArrive+=1;

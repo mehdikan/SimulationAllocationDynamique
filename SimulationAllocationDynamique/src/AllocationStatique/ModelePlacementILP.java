@@ -14,8 +14,7 @@ import org.gnu.glpk.glp_tree;
 import ParametresGlobeaux.*;
 import Requetes.*;
 import Infrastructure.*;
-import Modeles.ModeleCommunication;
-import Modeles.ModeleCout;
+import Modeles.*;
 
 public class ModelePlacementILP  implements GlpkCallbackListener{
 	Cloud cloud;
@@ -50,9 +49,9 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 	
 	boolean bonneSolutionTrouve=false;
 	
-	ModeleCout modeleCout;
+	ModeleCoutEconomique modeleCout;
 	
-	public ModelePlacementILP(Cloud cloud,ModeleCout modeleCout){
+	public ModelePlacementILP(Cloud cloud,ModeleCoutEconomique modeleCout){
 		////////////////////////
 		this.modeleCout=modeleCout;
 		this.cloud=cloud;
@@ -321,13 +320,13 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 			GLPK.glp_set_obj_coef(lp, 0,totalNbTezTasks*PXnonPlacees);
 			for(int m=0;m<nbTezSlots;m++){
 				for(int r=0;r<nbTezSlots;r++){
-					GLPK.glp_set_obj_coef(lp, getZIndex(m,r),ModeleCout.prixUniteCommunication*ModeleCout.distanceToPoidsCommunication(DIST[m][r]));
+					GLPK.glp_set_obj_coef(lp, getZIndex(m,r),ModeleCoutEconomique.prixUniteCommunication*ModeleCoutEconomique.distanceToPoidsCommunication(DIST[m][r]));
 				}
 			}
 			for(int i=0;i<nbStages;i++){
 				for(int m=0;m<nbTezTasks[i];m++){
 					for(int a=0;a<nbTezSlots;a++){
-						GLPK.glp_set_obj_coef(lp, getXIndex(i,m,a),Dt[i]*(ModeleCout.prixUniteRessources*MEMS[a])-PXnonPlacees);
+						GLPK.glp_set_obj_coef(lp, getXIndex(i,m,a),Dt[i]*(ModeleCoutEconomique.prixUniteRessources*MEMS[a])-PXnonPlacees);
 					}
 				}
 			}
@@ -405,7 +404,7 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 						for(int a=0;a<nbTezSlots;a++){
 							for(int b=0;b<nbTezSlots;b++){
 								if(GLPK.glp_mip_col_val(lp, getXIndex(i,m,a))==1 && GLPK.glp_mip_col_val(lp, getXIndex(j,r,b))==1){
-									coutTotalCommunication+=ModeleCout.distanceToPoidsCommunication(DIST[a][b])*Q[i][j];
+									coutTotalCommunication+=ModeleCoutEconomique.distanceToPoidsCommunication(DIST[a][b])*Q[i][j];
 								}
 							}
 						}

@@ -7,7 +7,7 @@ import PlanAllocation.PlanStatique;
 import PlanAllocation.TrancheTempsAlloue;
 import Requetes.*;
 import Infrastructure.*;
-import Modeles.ModeleCout;
+import Modeles.*;
 
 public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 	glp_prob lp;
@@ -34,9 +34,9 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 	
 	boolean bonneSolutionTrouve=false;
 	
-	public ModeleCout modeleCout;
+	public ModeleCoutEconomique modeleCout;
 	
-	public ModeleOrdonnancementILP(Cloud cloud,ModeleCout modeleCout,int AIn[][]){
+	public ModeleOrdonnancementILP(Cloud cloud,ModeleCoutEconomique modeleCout,int AIn[][]){
 		////////////////////////
 		this.modeleCout=modeleCout;
 		this.cloud=cloud;
@@ -53,12 +53,8 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 		for(ClasseClients c : cloud.listeClassesClient){
 		for(RequeteTez r : c.requeteTezEnAttente){
 			for(StageTez stage1 : r.listeStages){
+				quantiteRecue[stage1.indexStage]=stage1.quantiteRecu;
 				nbTezTasks[stage1.indexStage]=stage1.nombreTachesTez;
-				quantiteRecue[stage1.indexStage]=0;
-				for(StageTez stage2 : r.listeStages){
-					if(r.getLien(stage2,stage1)==1)
-						quantiteRecue[stage1.indexStage]+=stage2.quantiteStockeApresStage*stage2.nombreTachesTez;
-				}
 			}
 		}
 		}
@@ -317,7 +313,8 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
     				GLPK.glp_set_mat_row(lp, contIndex, nbElement, ind, val);
 			        contIndex++;
     			}
-    		}          
+    		}
+            
 
             for(int i=0;i<nbStages;i++){
     			for(int j=0;j<nbStages;j++){
@@ -415,7 +412,7 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
             for(int i=0;i<nbStages;i++){
 				for(int t=0;t<T;t++){				
 					if(t>D[i]){
-						GLPK.glp_set_obj_coef(lp, index, ModeleCout.prixUnitePenalites*P[i]);
+						GLPK.glp_set_obj_coef(lp, index, ModeleCoutEconomique.prixUnitePenalites*P[i]);
 					}
 					index++;
 				}
@@ -424,7 +421,7 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
             for(int i=0;i<nbStages;i++) {
             	for(int m=0;m<nbTezTasks[i];m++) {
             		for(int t=0;t<T;t++){
-            			GLPK.glp_set_obj_coef(lp, index, ModeleCout.prixUniteDisque*quantiteRecue[i]);
+            			GLPK.glp_set_obj_coef(lp, index, ModeleCoutEconomique.prixUniteDisque*quantiteRecue[i]);
             		}
             		index++;
             	}
@@ -527,10 +524,21 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 		            index++;
 		            modeleCout.coutDisque+=val*quantiteRecue[i];
         		}
+        		//modeleCout.coutDisque+=quantiteRecue[i]*Dt_traitement_et_communication[i][j];
         		if(VariablesGlobales.verbose) System.out.println(")");
         		if(VariablesGlobales.verbose) System.out.println("");
         	}
         }
+		
+		for(ClasseClients c : cloud.listeClassesClient){
+			for(RequeteTez r : c.requeteTezEnAttente){
+				for(StageTez stage : r.listeStages){
+					for(GroupeTachesTez tache: stage.groupesTezTaches){
+						modeleCout.coutDisque+=stage.donneeInitiale*(stage.dureeTacheTez+tache.dureeCommunication);
+					}
+				}
+			}
+		}
 		
 	    int debut,fin;
 	    PlanStatique gantt=new PlanStatique();

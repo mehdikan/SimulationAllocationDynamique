@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import Infrastructure.*;
 import Modeles.ModeleCommunication;
-import Modeles.ModeleCout;
+import Modeles.*;
 import ParametresGlobeaux.*;
 import Requetes.*;
 import PlanAllocation.*;
@@ -49,13 +49,13 @@ public abstract class GenericGreedy {
 		}
 	}
 	
-	public ModeleCout lancer(){
+	public ModeleCoutEconomique lancer(){
 		placer();
 		for(GroupeTachesTez tache:allGroupsTaches){
 			tache.fini=0;
 		}
 		ModeleCommunication.rajouterTempsCommunicationsGreedy(cloud);
-		ModeleCout cout=ordonnancer(false);
+		ModeleCoutEconomique cout=ordonnancer(false);
 		System.out.println("temps Total : "+cout.tempsExecTotal);
 		return cout;
 	}
@@ -120,14 +120,14 @@ public abstract class GenericGreedy {
 	
 	public abstract GroupeRessources affecter(GroupeTachesTez n,ArrayList<GroupeRessources> candidates);
 	
-	public ModeleCout ordonnancer(boolean partiel){
+	public ModeleCoutEconomique ordonnancer(boolean partiel){
 		EvenementFinTachesTez evCourant;
 		int tCourant;
 		evenements=new TreeSet<EvenementFinTachesTez>();
 		evenements.add(new EvenementFinTachesTez(1,null,null));
 		GroupeTachesTez elu;
 		int tempsMax=0;
-		ModeleCout c=new ModeleCout();
+		ModeleCoutEconomique c=new ModeleCoutEconomique();
 		
 		if(partiel) this.stock();
 
@@ -300,8 +300,8 @@ public abstract class GenericGreedy {
 		return coutTotal;
 	}
 	
-	public ModeleCout calculCout(boolean partiel){
-		ModeleCout modeleCout=new ModeleCout();
+	public ModeleCoutEconomique calculCout(boolean partiel){
+		ModeleCoutEconomique modeleCout=new ModeleCoutEconomique();
 		ArrayList<GroupeTachesTez> allGroupsTaches;
 		ArrayList<GroupeRessources> allGroupsSlots;
 		allGroupsTaches=new ArrayList<GroupeTachesTez>();
@@ -346,7 +346,7 @@ public abstract class GenericGreedy {
 		modeleCout.coutComm=0;
 		for(GroupeRessources a:allGroupsSlots){
 			for(GroupeRessources b:allGroupsSlots){
-				modeleCout.coutComm+=W[a.index][b.index]*ModeleCout.distanceToPoidsCommunication(cloud.getDistanceEntreSlots(a.index, b.index));
+				modeleCout.coutComm+=W[a.index][b.index]*ModeleCoutEconomique.distanceToPoidsCommunication(cloud.getDistanceEntreSlots(a.index, b.index));
 			}
 		}
 		modeleCout.coutRessources=0;
@@ -389,23 +389,30 @@ public abstract class GenericGreedy {
 		for(ClasseClients c : cloud.listeClassesClient){
 			for(RequeteTez r : c.requeteTezEnAttente){
 				for(StageTez stage1 : r.listeStages){
-					double quantiteRecue=0;
 					for(StageTez stage2 : r.listeStages){
 						if(r.getLien(stage2,stage1)==1) {
-							quantiteRecue+=stage2.quantiteStockeApresStage*stage2.nombreTachesTez;
 							for(GroupeTachesTez tache1: stage1.groupesTezTaches){
 								double dureeDisque=0;
 								for(GroupeTachesTez tache2: stage2.groupesTezTaches){
-									dureeDisque=Math.max(dureeDisque, tache1.tempsDeclanchement-(tache2.tempsDeclanchement+stage2.dureeTacheTez));
+									dureeDisque=Math.max(dureeDisque, tache1.tempsDeclanchement+stage1.dureeTacheTez+tache1.dureeCommunication-(tache2.tempsDeclanchement+stage2.dureeTacheTez));
+									//dureeDisque=Math.max(dureeDisque, tache1.tempsDeclanchement-(tache2.tempsDeclanchement+stage2.dureeTacheTez));
 								}
-								modeleCout.coutDisque+=dureeDisque*quantiteRecue;
+								modeleCout.coutDisque+=dureeDisque*stage1.quantiteRecu;
 							}
 						}
 					}
 				}
 			}
 		}
-		
+		for(ClasseClients c : cloud.listeClassesClient){
+			for(RequeteTez r : c.requeteTezEnAttente){
+				for(StageTez stage : r.listeStages){
+					for(GroupeTachesTez tache: stage.groupesTezTaches){
+						modeleCout.coutDisque+=stage.donneeInitiale*(stage.dureeTacheTez+tache.dureeCommunication);
+					}
+				}
+			}
+		}
 		
 		return modeleCout;
 	}
