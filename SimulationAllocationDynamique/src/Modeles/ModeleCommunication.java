@@ -10,8 +10,8 @@ import AllocationStatique.*;
 
 public class ModeleCommunication {
 	public static double bwVM=0;
-	public static double bwMPhysique=40;
-	public static double bwReseauPhysique=4;
+	public static double bwMPhysique=(80.0*1024/8/(256))/1000;  // bloc/ms  (80gbit/s)
+	public static double bwReseauPhysique=(80.0*1024/8/(256))/1000; // bloc/ms  (80gbit/s)  
 	
 	
 	public static double distanceToBW(int distance) {
@@ -20,7 +20,7 @@ public class ModeleCommunication {
 		return bwVM;
 	}
 	
-	public static double rajouterTempsCommunicationsILP(Cloud cloud,ModelePlacementILP modelPlacement) {
+	public static void rajouterTempsCommunicationsILP(Cloud cloud,ModelePlacementILP modelPlacement) {
 		double coutRessourcesCauseCommunication=0;
 		for(ClasseClients c : cloud.listeClassesClient){
 			for(RequeteTez r : c.requeteTezEnAttente){
@@ -40,7 +40,7 @@ public class ModeleCommunication {
 							}
 						}
 					    
-					    double coutMem=0;
+					    /*double coutMem=0;
 					    for(MachinePhysique mp : cloud.listeMachinesPhysique){
 							for(VM vm : mp.ListeVMs){
 								if(modelPlacement.A[stage1.indexStage][tache1.indexDansStage]>=vm.indexDebutSlotsTez 
@@ -48,14 +48,15 @@ public class ModeleCommunication {
 									coutMem=vm.memoireTezSlots;
 								}
 							}
-						}
-					    tache1.dureeCommunication=(int)Math.ceil(tempsComm/VariablesGlobales.tailleFentreTemps);
-					    coutRessourcesCauseCommunication+=tache1.dureeCommunication*coutMem;
+						}*/
+					    //tache1.dureeCommunication=(int)Math.ceil(tempsComm/VariablesGlobales.tailleFentreTemps);
+					    tache1.dureeCommunicationEnMs=(int)tempsComm;
+					    //coutRessourcesCauseCommunication+=tache1.dureeCommunication*coutMem;
 					}
 				}
 			}
 		}
-		return coutRessourcesCauseCommunication;
+		//return coutRessourcesCauseCommunication;
 	}
 	
 	public static void rajouterTempsCommunicationsGreedy(Cloud cloud) {
@@ -76,7 +77,8 @@ public class ModeleCommunication {
 								}
 							}
 						}
-					    tache1.dureeCommunication=(int)Math.ceil(tempsComm/VariablesGlobales.tailleFentreTemps);
+					    //tache1.dureeCommunication=(int)Math.ceil(tempsComm/VariablesGlobales.tailleFentreTemps);
+					    tache1.dureeCommunicationEnMs=(int)tempsComm;
 					}
 				}
 			}

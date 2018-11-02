@@ -194,12 +194,12 @@ public abstract class GenericGreedy {
 						if(trouv) break;
 					};
 
-					elu.ressource.vm.setAlloueTez(indexRessouces,tCourant,elu.stage.dureeTacheTez+elu.dureeCommunication);
+					elu.ressource.vm.setAlloueTez(indexRessouces,tCourant,(int)Math.ceil((elu.stage.dureeTacheTezEnMs+elu.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps));
 					 Iterator<EvenementFinTachesTez> iterator = evenements.iterator(); 
 					 trouv=false;
 				      while (iterator.hasNext()){
 				    	  EvenementFinTachesTez ev=(EvenementFinTachesTez) iterator.next();
-				         if(ev.instant==tCourant+elu.stage.dureeTacheTez+elu.dureeCommunication){
+				         if(ev.instant==tCourant+(int)Math.ceil((elu.stage.dureeTacheTezEnMs+elu.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps)){
 				        	 trouv=true;
 				        	 ev.ressorceALiberer.add(elu.ressource);
 				        	 ev.tachesFinies.add(elu);
@@ -207,7 +207,7 @@ public abstract class GenericGreedy {
 				         }
 				      }
 				      if(!trouv){
-				    	  evenements.add(new EvenementFinTachesTez(tCourant+elu.stage.dureeTacheTez+elu.dureeCommunication,elu.ressource,elu));
+				    	  evenements.add(new EvenementFinTachesTez(tCourant+(int)Math.ceil((elu.stage.dureeTacheTezEnMs+elu.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps),elu.ressource,elu));
 				      }
 				      allGroupsTaches.remove(elu);
 
@@ -255,7 +255,7 @@ public abstract class GenericGreedy {
 				}
 				if(trouv) break;
 			}
-			if(tache.ressource!=null && tache.pret(cloud,instantCourant) && tache.ressource.vm.verifierDisponibiliteTez(indexRessouces,instantCourant,tache.stage.dureeTacheTez+tache.dureeCommunication)){
+			if(tache.ressource!=null && tache.pret(cloud,instantCourant) && tache.ressource.vm.verifierDisponibiliteTez(indexRessouces,instantCourant,(int)Math.ceil((tache.stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps))){
 				if(elu==null 
 						|| tache.ordre<elu.ordre)
 				{
@@ -353,7 +353,7 @@ public abstract class GenericGreedy {
 		for(GroupeTachesTez tache:allGroupsTaches){
 			if(tache.ressource!=null){
 				//coutProc+=tache.ressource.vm.processeurTezSlots*(tache.stage.dureeTacheTez+tache.dureeCommunication);
-				modeleCout.coutRessources+=tache.ressource.vm.memoireTezSlots*(tache.stage.dureeTacheTez+tache.dureeCommunication);
+				modeleCout.coutRessources+=tache.ressource.vm.memoireTezSlots*(int)Math.ceil((tache.stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps);
 			}
 		}
 
@@ -394,7 +394,7 @@ public abstract class GenericGreedy {
 							for(GroupeTachesTez tache1: stage1.groupesTezTaches){
 								double dureeDisque=0;
 								for(GroupeTachesTez tache2: stage2.groupesTezTaches){
-									dureeDisque=Math.max(dureeDisque, tache1.tempsDeclanchement+stage1.dureeTacheTez+tache1.dureeCommunication-(tache2.tempsDeclanchement+stage2.dureeTacheTez));
+									dureeDisque=Math.max(dureeDisque, tache1.tempsDeclanchement+(int)Math.ceil((stage1.dureeTacheTezEnMs+tache1.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps)-(tache2.tempsDeclanchement+stage2.dureeTacheTezEnFenetres));
 									//dureeDisque=Math.max(dureeDisque, tache1.tempsDeclanchement-(tache2.tempsDeclanchement+stage2.dureeTacheTez));
 								}
 								modeleCout.coutDisque+=dureeDisque*stage1.quantiteRecu;
@@ -408,7 +408,7 @@ public abstract class GenericGreedy {
 			for(RequeteTez r : c.requeteTezEnAttente){
 				for(StageTez stage : r.listeStages){
 					for(GroupeTachesTez tache: stage.groupesTezTaches){
-						modeleCout.coutDisque+=stage.donneeInitiale*(stage.dureeTacheTez+tache.dureeCommunication);
+						modeleCout.coutDisque+=stage.donneeInitiale*((int)Math.ceil((stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps));
 					}
 				}
 			}

@@ -125,7 +125,7 @@ public class Cloud {
 					&& tachesG.stage.memoireTacheTez<=vm.memoireTezSlots){
 					for(GroupeRessources g:vm.groupeTezRessources){
 						int indexRessouces=0;
-						if(g.getDisponibilite()==1 && vm.verifierDisponibiliteTez(indexRessouces,instantCourant,tachesG.stage.dureeTacheTez)){
+						if(g.getDisponibilite()==1 && vm.verifierDisponibiliteTez(indexRessouces,instantCourant,tachesG.stage.dureeTacheTezEnFenetres)){
 							boolean trouv=false;
 							for(GroupeTachesTez gg:tachesG.stage.groupesTezTaches){
 								if(tachesG!=gg && gg.ressource==g){
@@ -147,8 +147,7 @@ public class Cloud {
 	public void allouerRessourcesTez(PlanStatique gantt){
 		for(TrancheTempsAlloue tta:gantt.tab){
 			for(int t=tta.dateDebut;t<=tta.dateFin;t++){
-				//System.out.println("+"+tta.dateDebut);
-				this.listeMachinesPhysique.get(this.getIndexMachinePhysiqueTez(tta.indexRessource)).ListeVMs.get(this.getIndexVMTez(tta.indexRessource)).disponibliteTrancheTempsTez[this.getIndexRessourceDansVMTez(tta.indexRessource)][t-1]=0;
+			    this.listeMachinesPhysique.get(this.getIndexMachinePhysiqueTez(tta.indexRessource)).ListeVMs.get(this.getIndexVMTez(tta.indexRessource)).disponibliteTrancheTempsTez[this.getIndexRessourceDansVMTez(tta.indexRessource)][t-1]=0;
 			}
 		}
 	}
@@ -234,29 +233,7 @@ public class Cloud {
 		return -1;
 	}
 	
-	public int getIndexVMMR(int indexRessource,int typeMouR){
-		int index=0;
-		for(MachinePhysique mp:this.listeMachinesPhysique){
-			for(VM vm:mp.ListeVMs){
-				if(typeMouR==1){
-					for(int i=0;i<vm.nbMapSlots;i++){
-						if(index==indexRessource)
-							return vm.indexVM;
-						index++;
-					}
-				}
-				else{
-					for(int i=0;i<vm.nbReduceSlots;i++){
-						if(index==indexRessource)
-							return vm.indexVM;
-						index++;
-					}
-				}
-			}
-		}
-		return -1;
-	}
-	
+
 	
 	public int getIndexVMTez(int indexRessource){
 		int index=0;

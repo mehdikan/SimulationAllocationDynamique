@@ -34,15 +34,15 @@ public class VM {
 	public VM() {}
 
 	
-	public VM(int nbTezSlots,int processeurTezSlots,int memoireTezSlots,int stockageTezSlots){
+	public VM(int nbTezSlots,int processeurTezSlots,int memoireTezSlots,int indexVM){
 		this.processeurTezSlots=processeurTezSlots;
 		this.memoireTezSlots=memoireTezSlots;
-		this.stockageTezSlots=stockageTezSlots;
 		this.nbTezSlots=nbTezSlots;
 		this.indexDebutSlotsMap=VariablesGlobales.mapSlotsIndex;
 		this.indexDebutSlotsReduce=VariablesGlobales.reduceSlotsIndex;
 		this.indexDebutSlotsTez=VariablesGlobales.tezSlotsIndex;
-		this.indexVM=VariablesGlobales.vmIndex;
+		//this.indexVM=VariablesGlobales.vmIndex;
+		this.indexVM=indexVM;
 		VariablesGlobales.vmIndex++;
 		VariablesGlobales.mapSlotsIndex+=nbMapSlots;
 		VariablesGlobales.reduceSlotsIndex+=nbReduceSlots;
@@ -157,7 +157,7 @@ public class VM {
 		return true;
 	}
 	
-	public boolean verifierDisponibiliteTez(int indexRessouces,int instantdebut,int dureeTacheTez){
+	public boolean verifierDisponibiliteTez(int indexRessouces,int instantdebut,double dureeTacheTez){
 		for(int t=instantdebut-1;t<instantdebut+dureeTacheTez-1;t++){
 			if(this.disponibliteTrancheTempsTez[indexRessouces][t]==0) return false;
 		}

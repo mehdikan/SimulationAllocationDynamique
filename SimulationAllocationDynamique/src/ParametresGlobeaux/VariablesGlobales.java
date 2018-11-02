@@ -35,17 +35,12 @@ public class VariablesGlobales {
 	public static FileWriter writer_gmpm;
 	public static FileWriter writer_pl2p;
 	
-	public static int T=40;
-	public static double tailleFentreTemps=1;
+	public static int T=1000;
+	public static double tailleFentreTemps=10000;
 	
-	public static double PXnonPlacees=10000;
-	public static double PYnonPlacees=10000;
+	public static double PnonPlacees=10000;
 	public static double coefRepartition=0;
 	public static double niveauDisponiblite=1;
-	public static double coutActivationRessource=1;
-	public static double coutDesactivationRessource=1;
-	
-
 
 	public static void init(){
 		jobIndex=0;

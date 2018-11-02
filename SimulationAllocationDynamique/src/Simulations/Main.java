@@ -19,30 +19,30 @@ import AllocationDynamique.*;
 public class Main {
 	public static void main(String[] args)  throws IOException{
 		// TODO Auto-generated method stub		
-		int algoStatique=1;
+		int algoStatique=2;
 		int nb=VariablesGlobales.nbTacheParGroupe;
 		Cloud cloud=new Cloud();
 		cloud.listeMachinesPhysique.add(new MachinePhysique());
 		for(int i=0;i<5;i++)
-			cloud.ajouterVM(0,new VM(1,nb*1,nb*2,nb*2));
+			cloud.ajouterVM(0,new VM(1,nb*1,nb*2,i));
 		for(int i=0;i<5;i++)
-			cloud.ajouterVM(0,new VM(1,nb*1,nb*1,nb*1));
+			cloud.ajouterVM(0,new VM(1,nb*1,nb*1,i+5));
 		cloud.setDefaultDistance();
 
 		cloud.listeClassesClient.add(new ClasseClients());
-		RequeteTez req=new RequeteTez(1,25);
-		req.rajouterStage(new StageTez(req,3,4,nb*2,nb*2,nb*2));
-		req.rajouterStage(new StageTez(req,2,3,nb*1,nb*1,0));
+		RequeteTez req=new RequeteTez(1,15,"Req1");
+		req.rajouterStage(new StageTez(req,3*60000,4,nb*2,nb*2,nb*2));
+		req.rajouterStage(new StageTez(req,2*60000,3,nb*1,nb*1,0));
 	    req.stageFinal=req.listeStages.get(req.listeStages.size()-1);
 	    req.initLiens();
 	    req.majQuantiteTransfertStages(req.getStage(0), req.getStage(1), nb*2);
 	    req.majTypeLien(req.getStage(0), req.getStage(1), 1);
 		cloud.listeClassesClient.get(0).requeteTezEnAttente.add(req);
 		
-		req=new RequeteTez(1,25);
-	    req.rajouterStage(new StageTez(req,3,5,nb*2,nb*2,nb*2));
-	    req.rajouterStage(new StageTez(req,3,4,nb*2,nb*2,nb*2));
-	    req.rajouterStage(new StageTez(req,2,3,nb*1,nb*1,0));
+		req=new RequeteTez(1,15,"Req2");
+	    req.rajouterStage(new StageTez(req,3*60000,5,nb*2,nb*2,nb*2));
+	    req.rajouterStage(new StageTez(req,3*60000,4,nb*2,nb*2,nb*2));
+	    req.rajouterStage(new StageTez(req,2*60000,3,nb*1,nb*1,0));
 	    req.stageFinal=req.listeStages.get(req.listeStages.size()-1);
 	    req.initLiens();
 	    req.majQuantiteTransfertStages(req.getStage(0), req.getStage(1), nb*2);

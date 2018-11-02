@@ -6,10 +6,11 @@ import ParametresGlobeaux.*;
 
 public class StageTez {
 	public RequeteTez requeteTez;
-	public int dureeTacheTez;
+	public long dureeTacheTezEnMs;
+	public int dureeTacheTezEnFenetres;
 	public int nombreTachesTez;
 	public int processeurTacheTez;
-	public int memoireTacheTez;
+	public long memoireTacheTez;
 	public int indexStage;
 	public int indexDebutTasksTez;
 	public ArrayList<GroupeTachesTez> groupesTezTaches;
@@ -18,9 +19,10 @@ public class StageTez {
 	public double quantiteRecu=0;
 	public double donneeInitiale=0;
 	
-	public StageTez(RequeteTez reqTez,int dureeTacheTez, int nombreTachesTez,int memoireTacheTez,double quantiteStockeApresStage,double donneeInitiale){
+	public StageTez(RequeteTez reqTez,long dureeTacheTezEnMs, int nombreTachesTez,long memoireTacheTez,double quantiteStockeApresStage,double donneeInitiale){
 		this.requeteTez=reqTez;
-		this.dureeTacheTez=dureeTacheTez;
+		this.dureeTacheTezEnMs=dureeTacheTezEnMs;
+		this.dureeTacheTezEnFenetres=(int)Math.ceil(this.dureeTacheTezEnMs/VariablesGlobales.tailleFentreTemps);
 		this.nombreTachesTez=nombreTachesTez;
 		this.processeurTacheTez=VariablesGlobales.nbTacheParGroupe;
 		this.memoireTacheTez=memoireTacheTez;
@@ -37,7 +39,7 @@ public class StageTez {
 		
 		this.groupesTezTaches=new ArrayList<GroupeTachesTez>();
 		for(int i=0;i<nombreTachesTez;i++){
-			this.groupesTezTaches.add(new GroupeTachesTez(this,dureeTacheTez,i));
+			this.groupesTezTaches.add(new GroupeTachesTez(this,this.dureeTacheTezEnFenetres,i));
 		}
 	}
 }

@@ -98,12 +98,12 @@ public class GMPM extends GenericGreedy {
 			}
 			for(GroupeTachesTez tache:allGroupsTaches){
 				if(tache.ressource!=null){
-					chargeRessources.put(tache.ressource, chargeRessources.get(tache.ressource)+tache.stage.dureeTacheTez);
+					chargeRessources.put(tache.ressource, chargeRessources.get(tache.ressource)+tache.stage.dureeTacheTezEnFenetres);
 				}
 			}
 			double deviation=-1;
 			for(GroupeRessources ress:candidates){
-				chargeRessources.put(ress, chargeRessources.get(ress)+n.stage.dureeTacheTez);
+				chargeRessources.put(ress, chargeRessources.get(ress)+n.stage.dureeTacheTezEnFenetres);
 				Statistics stat=new Statistics(chargeRessources);
 				double var=stat.getVariance();
 				if(deviation==-1 || var<deviation){
@@ -118,11 +118,11 @@ public class GMPM extends GenericGreedy {
 						ressChoisie=ress;
 					}
 				}
-				chargeRessources.put(ress, chargeRessources.get(ress)-n.stage.dureeTacheTez);
+				chargeRessources.put(ress, chargeRessources.get(ress)-n.stage.dureeTacheTezEnFenetres);
 			}
 		}
 		
-		//this.affectationStategie=(this.affectationStategie+1)%2;
+		this.affectationStategie=(this.affectationStategie+1)%2;
 		return ressChoisie;
 	}
 }

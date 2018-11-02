@@ -1,12 +1,12 @@
 package Requetes;
 
 import java.util.*;
-
 import Divers.StagesKey;
 import Divers.*;
 import ParametresGlobeaux.*;
 
 public class RequeteTez {
+	public String name="default";
 	public int index;
 	public ArrayList<StageTez> listeStages;
 	public StageTez stageFinal;
@@ -14,16 +14,17 @@ public class RequeteTez {
 	public int dateLimite;
 	public int dateFinReelle;
 	public int tempsGMPT=0;
-	Map<StagesKey, Integer> quantiteTransfertStages;
+	Map<StagesKey, Long> quantiteTransfertStages;
 	public Map<StagesKey, Integer> typeLien;
 	//public double quantiteStockeApresStage;
 	
-	public RequeteTez(double poids,int dateLimite){
+	public RequeteTez(double poids,int dateLimite,String name){
+		this.name=name;
 		this.poids=poids;
 		this.dateLimite=dateLimite;
 		this.dateFinReelle=-1;
 		listeStages=new ArrayList<StageTez>();
-		quantiteTransfertStages=new HashMap<StagesKey, Integer>();
+		quantiteTransfertStages=new HashMap<StagesKey, Long>();
 		typeLien=new HashMap<StagesKey, Integer>();
 		this.index=VariablesGlobales.indexrequetes;
 		VariablesGlobales.indexrequetes+=1;
@@ -43,7 +44,7 @@ public class RequeteTez {
 	    }
 	}
 	
-	public void majQuantiteTransfertStages(StageTez s1, StageTez s2,int quantite)
+	public void majQuantiteTransfertStages(StageTez s1, StageTez s2,long quantite)
 	{
 		quantiteTransfertStages.put(new StagesKey(s1,s2),quantite);
 		if(quantite>0 && s1!=s2){
@@ -59,15 +60,7 @@ public class RequeteTez {
 	{
 		typeLien.put(new StagesKey(s1,s2),type);
 	}
-	
-	public int dureeIdeal() {
-		int dureeIdeal=0;
-		for(StageTez stage : listeStages) {
-			dureeIdeal+=stage.dureeTacheTez;
-		}
-		return dureeIdeal;
-	}
-	
+		
 	public int nbStages(){
 		return listeStages.size();
 	}
@@ -83,7 +76,7 @@ public class RequeteTez {
 		return null;
 	}
 	
-	public int getQuantiteTransfertStages(StageTez stage1,StageTez stage2){
+	public long getQuantiteTransfertStages(StageTez stage1,StageTez stage2){
 		if(quantiteTransfertStages.get(new StagesKey(stage1,stage2))!=null){
 			return quantiteTransfertStages.get(new StagesKey(stage1,stage2));
 		}
@@ -102,5 +95,15 @@ public class RequeteTez {
 			return typeLien.get(new StagesKey(stage1,stage2));
 		}
 		return 0;
+	}
+	
+	public void descriptionRequete() {
+		System.out.println("--------------------------------------------------------");
+		System.out.println("Query : "+this.name);
+		for(StageTez stage: this.listeStages)
+		{
+			System.out.println("memoire ="+stage.memoireTacheTez);
+			//System.out.println("temps en fentres ="+stage.nombreTachesTez);
+		}
 	}
 }

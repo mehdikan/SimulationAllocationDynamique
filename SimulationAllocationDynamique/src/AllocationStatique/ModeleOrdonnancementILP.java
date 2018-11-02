@@ -86,9 +86,9 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 				for(StageTez stage1 : rq.listeStages){
 					Dt_max[stage1.indexStage]=0;
 					for(GroupeTachesTez tache: stage1.groupesTezTaches) {
-						Dt_max[stage1.indexStage]=Math.max(Dt_max[stage1.indexStage], stage1.dureeTacheTez+tache.dureeCommunication);
-						Dt_traitement[stage1.indexStage][tache.indexDansStage]=stage1.dureeTacheTez;
-						Dt_traitement_et_communication[stage1.indexStage][tache.indexDansStage]=stage1.dureeTacheTez+tache.dureeCommunication;
+						Dt_max[stage1.indexStage]=Math.max(Dt_max[stage1.indexStage], (int)Math.ceil((stage1.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps));
+						Dt_traitement[stage1.indexStage][tache.indexDansStage]=stage1.dureeTacheTezEnFenetres;
+						Dt_traitement_et_communication[stage1.indexStage][tache.indexDansStage]=(int)Math.ceil((stage1.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps);
 					}
 					//Dt[stage1.indexStage]=stage1.dureeTacheTez;
 					D[stage1.indexStage]=rq.dateLimite;
@@ -534,7 +534,7 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 			for(RequeteTez r : c.requeteTezEnAttente){
 				for(StageTez stage : r.listeStages){
 					for(GroupeTachesTez tache: stage.groupesTezTaches){
-						modeleCout.coutDisque+=stage.donneeInitiale*(stage.dureeTacheTez+tache.dureeCommunication);
+						modeleCout.coutDisque+=stage.donneeInitiale*((int)Math.ceil(stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps);
 					}
 				}
 			}

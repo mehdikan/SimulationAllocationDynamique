@@ -31,10 +31,11 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 	double[] MEMT;
 	double[] PROCS;
 	double[] MEMS;
-	int Dt[];
+	double Dt_en_fenetre[];
+	double Dt_en_ms[];
 	int F[][];  
 
-	double PXnonPlacees,PYnonPlacees,coefRepartition;
+	double PnonPlacees,coefRepartition;
 	
 	public int A[][];
 	
@@ -51,14 +52,16 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 	
 	ModeleCoutEconomique modeleCout;
 	
+	StageTez stages[];
+	GroupeTachesTez taches[][];
+	
 	public ModelePlacementILP(Cloud cloud,ModeleCoutEconomique modeleCout){
 		////////////////////////
 		this.modeleCout=modeleCout;
 		this.cloud=cloud;
 		nbStages=cloud.getNbStages();
 		nbTezSlots=VariablesGlobales.tezSlotsIndex;
-		PXnonPlacees=VariablesGlobales.PXnonPlacees;
-		PYnonPlacees=VariablesGlobales.PYnonPlacees;
+		PnonPlacees=VariablesGlobales.PnonPlacees;
 		coefRepartition=VariablesGlobales.coefRepartition;
 		T=VariablesGlobales.T;    
 		////////////////////////
@@ -66,10 +69,29 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 		nbTezTasks=new int[nbStages];
 		
 		////////////////////////
+		int nbStages=0;
 		for(ClasseClients c : cloud.listeClassesClient){
 			for(RequeteTez r : c.requeteTezEnAttente){
 				for(StageTez stage : r.listeStages){
 					nbTezTasks[stage.indexStage]=stage.nombreTachesTez;
+					nbStages++;
+				}
+			}
+		}
+		stages=new StageTez[nbStages];
+		taches=new GroupeTachesTez[nbStages][];
+		int cpt=0;
+		for(ClasseClients c : cloud.listeClassesClient){
+			for(RequeteTez r : c.requeteTezEnAttente){
+				for(StageTez stage : r.listeStages){
+					stages[cpt]=stage;
+					taches[cpt]=new GroupeTachesTez[stage.nombreTachesTez];
+			        int cpt2=0;
+					for(GroupeTachesTez tache : stage.groupesTezTaches) {
+						taches[cpt][cpt2]=tache;
+						cpt2++;
+					}
+					cpt++;
 				}
 			}
 		}
@@ -84,7 +106,8 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 		
 		F=new int[nbTezSlots][T];      
 		
-		Dt=new int[nbStages];
+		Dt_en_fenetre=new double[nbStages];
+		Dt_en_ms=new double[nbStages];
 		
 		///////////////////////
 		for(int a=0;a<nbTezSlots;a++){
@@ -129,7 +152,8 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 		for(ClasseClients c : cloud.listeClassesClient){
 			for(RequeteTez rq : c.requeteTezEnAttente){
 				for(StageTez stage1 : rq.listeStages){
-					Dt[stage1.indexStage]=stage1.dureeTacheTez;
+					Dt_en_fenetre[stage1.indexStage]=stage1.dureeTacheTezEnFenetres;
+					Dt_en_ms[stage1.indexStage]=stage1.dureeTacheTezEnMs;
 				}
 			}
 		}
@@ -306,7 +330,7 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 		        for(int i=0;i<nbStages;i++){
 		        	for(int j=0;j<nbTezTasks[i];j++){
 		        		GLPK.intArray_setitem(ind, ii, getXIndex(i,j,a));
-			        	GLPK.doubleArray_setitem(val, ii, Dt[i]);
+			        	GLPK.doubleArray_setitem(val, ii, Dt_en_fenetre[i]);
 			        	ii++;
 		        	}
 		        }
@@ -317,7 +341,7 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 			}
 						
 			// fonction objective
-			GLPK.glp_set_obj_coef(lp, 0,totalNbTezTasks*PXnonPlacees);
+			GLPK.glp_set_obj_coef(lp, 0,totalNbTezTasks*PnonPlacees);
 			for(int m=0;m<nbTezSlots;m++){
 				for(int r=0;r<nbTezSlots;r++){
 					GLPK.glp_set_obj_coef(lp, getZIndex(m,r),ModeleCoutEconomique.prixUniteCommunication*ModeleCoutEconomique.distanceToPoidsCommunication(DIST[m][r]));
@@ -326,7 +350,7 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 			for(int i=0;i<nbStages;i++){
 				for(int m=0;m<nbTezTasks[i];m++){
 					for(int a=0;a<nbTezSlots;a++){
-						GLPK.glp_set_obj_coef(lp, getXIndex(i,m,a),Dt[i]*(ModeleCoutEconomique.prixUniteRessources*MEMS[a])-PXnonPlacees);
+						GLPK.glp_set_obj_coef(lp, getXIndex(i,m,a),Dt_en_fenetre[i]*(ModeleCoutEconomique.prixUniteRessources*MEMS[a])-PnonPlacees);
 					}
 				}
 			}
@@ -394,7 +418,7 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 		}
 		System.out.println("Nombre de taches non placees : "+nb+"/"+totalNbTezTasks);
 	
-		double coutRessourcesCauseCommunication=ModeleCommunication.rajouterTempsCommunicationsILP(cloud,this);
+		ModeleCommunication.rajouterTempsCommunicationsILP(cloud,this);
 		
 		double coutTotalCommunication=0;
 		for(int i=0;i<nbStages;i++){
@@ -419,16 +443,11 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 			for(int m=0;m<nbTezTasks[i];m++){
 				for(int a=0;a<nbTezSlots;a++){
 					//coutTotalProcesseur+=GLPK.glp_mip_col_val(lp, getXIndex(i,m,a))*Dt[i]*PROCS[a];
-					coutTotalMemoire+=GLPK.glp_mip_col_val(lp, getXIndex(i,m,a))*Dt[i]*MEMS[a];
+					coutTotalMemoire+=GLPK.glp_mip_col_val(lp, getXIndex(i,m,a))*((int)Math.ceil((stages[i].dureeTacheTezEnMs+taches[i][m].dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps))*MEMS[a];
 				}
 			}
 		}
-		coutTotalMemoire+=coutRessourcesCauseCommunication;
 
-		//System.out.println("Prix communication : "+(ModeleCout.prixUniteCommunication*coutTotalCommunication));
-		//System.out.println("Prix ressourses : "+coutTotalProcesseur);
-		//System.out.println("Cout mémoire : "+coutTotalMemoire);
-		//System.out.println("Prix Ressources "+(ModeleCout.prixUniteRessources*coutTotalMemoire));
 		this.modeleCout.coutComm=coutTotalCommunication;
 		this.modeleCout.coutRessources=coutTotalMemoire;
 	}

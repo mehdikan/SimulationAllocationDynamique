@@ -2,7 +2,7 @@ package Modeles;
 
 
 public class ModeleCoutEconomique {
-	public static double prixUnitePenalites=2;
+	public static double prixUnitePenalites=1;
 	public static double prixUniteCommunication=0.00005;
 	public static double prixUniteRessources=0.005;
 	public static double prixUniteDisque=0.0025;
