@@ -21,7 +21,6 @@ public class ModeleCommunication {
 	}
 	
 	public static void rajouterTempsCommunicationsILP(Cloud cloud,ModelePlacementILP modelPlacement) {
-		double coutRessourcesCauseCommunication=0;
 		for(ClasseClients c : cloud.listeClassesClient){
 			for(RequeteTez r : c.requeteTezEnAttente){
 				for(StageTez stage1 : r.listeStages){
@@ -39,24 +38,11 @@ public class ModeleCommunication {
 								}
 							}
 						}
-					    
-					    /*double coutMem=0;
-					    for(MachinePhysique mp : cloud.listeMachinesPhysique){
-							for(VM vm : mp.ListeVMs){
-								if(modelPlacement.A[stage1.indexStage][tache1.indexDansStage]>=vm.indexDebutSlotsTez 
-										&& modelPlacement.A[stage1.indexStage][tache1.indexDansStage]<vm.indexDebutSlotsTez+vm.nbTezSlots) {
-									coutMem=vm.memoireTezSlots;
-								}
-							}
-						}*/
-					    //tache1.dureeCommunication=(int)Math.ceil(tempsComm/VariablesGlobales.tailleFentreTemps);
 					    tache1.dureeCommunicationEnMs=(int)tempsComm;
-					    //coutRessourcesCauseCommunication+=tache1.dureeCommunication*coutMem;
 					}
 				}
 			}
 		}
-		//return coutRessourcesCauseCommunication;
 	}
 	
 	public static void rajouterTempsCommunicationsGreedy(Cloud cloud) {

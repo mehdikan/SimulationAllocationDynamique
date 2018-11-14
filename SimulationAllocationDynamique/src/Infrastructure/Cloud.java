@@ -310,7 +310,7 @@ public class Cloud {
 					double quantiteRecue=0;
 					for(StageTez stage2 : r.listeStages){
 						if(r.getLien(stage2,stage1)==1) {
-							quantiteRecue+=stage2.quantiteStockeApresStage*stage2.nombreTachesTez;
+							quantiteRecue+=stage2.quantiteStockeApresStage*stage2.nombreGroupesTachesTez;
 						}
 					}
 					stage1.quantiteRecu=quantiteRecue;

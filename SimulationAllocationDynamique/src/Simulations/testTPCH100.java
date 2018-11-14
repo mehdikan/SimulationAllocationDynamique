@@ -14,6 +14,7 @@ import Requetes.*;
 import Divers.*;
 import Infrastructure.*;
 import AllocationStatique.*;
+import CollectionStatistiques.*;
 import Divers.CSVUtils;
 import AllocationDynamique.*;
 
@@ -37,15 +38,15 @@ public class testTPCH100 {
 		RequeteTez req5=TPCH100.q5_scale100(cloud);
 		RequeteTez req8=TPCH100.q8_scale100(cloud);
 		RequeteTez req10=TPCH100.q10_scale100(cloud);	
-		
-		
 		cloud.calculQuantiteRecuParTache();
+		
+		PlacementStatistiques.placementCollecteurStatistiquesCloud(cloud);
 		
 		req3.descriptionRequete();
 		req4.descriptionRequete();
 		req5.descriptionRequete();
 		req8.descriptionRequete();
-		req10.descriptionRequete();jjj
+		req10.descriptionRequete();
 		
 		PlanAllocation.PlanStatique gantt;
 		if(algoStatique==1) {

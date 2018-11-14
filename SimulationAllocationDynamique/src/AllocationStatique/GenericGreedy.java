@@ -353,7 +353,7 @@ public abstract class GenericGreedy {
 		for(GroupeTachesTez tache:allGroupsTaches){
 			if(tache.ressource!=null){
 				//coutProc+=tache.ressource.vm.processeurTezSlots*(tache.stage.dureeTacheTez+tache.dureeCommunication);
-				modeleCout.coutRessources+=tache.ressource.vm.memoireTezSlots*(int)Math.ceil((tache.stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps);
+				modeleCout.coutRessources+=tache.ressource.vm.memoireTezSlots*(long)Math.ceil((tache.stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps);
 			}
 		}
 

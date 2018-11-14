@@ -54,7 +54,7 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 		for(RequeteTez r : c.requeteTezEnAttente){
 			for(StageTez stage1 : r.listeStages){
 				quantiteRecue[stage1.indexStage]=stage1.quantiteRecu;
-				nbTezTasks[stage1.indexStage]=stage1.nombreTachesTez;
+				nbTezTasks[stage1.indexStage]=stage1.nombreGroupesTachesTez;
 			}
 		}
 		}

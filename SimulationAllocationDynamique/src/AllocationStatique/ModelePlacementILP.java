@@ -73,7 +73,7 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 		for(ClasseClients c : cloud.listeClassesClient){
 			for(RequeteTez r : c.requeteTezEnAttente){
 				for(StageTez stage : r.listeStages){
-					nbTezTasks[stage.indexStage]=stage.nombreTachesTez;
+					nbTezTasks[stage.indexStage]=stage.nombreGroupesTachesTez;
 					nbStages++;
 				}
 			}
@@ -85,7 +85,7 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 			for(RequeteTez r : c.requeteTezEnAttente){
 				for(StageTez stage : r.listeStages){
 					stages[cpt]=stage;
-					taches[cpt]=new GroupeTachesTez[stage.nombreTachesTez];
+					taches[cpt]=new GroupeTachesTez[stage.nombreGroupesTachesTez];
 			        int cpt2=0;
 					for(GroupeTachesTez tache : stage.groupesTezTaches) {
 						taches[cpt][cpt2]=tache;
@@ -450,6 +450,8 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 
 		this.modeleCout.coutComm=coutTotalCommunication;
 		this.modeleCout.coutRessources=coutTotalMemoire;
+		
+		
 	}
 	
 	public void setOutput(glp_prob lp){
@@ -462,6 +464,24 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 				for(int a=0;a<nbTezSlots;a++){
 					if(GLPK.glp_mip_col_val(lp, getXIndex(i,j,a))==1){
 						A[i][j]=a;
+					}
+				}
+			}
+		}
+		
+		for(MachinePhysique mp : cloud.listeMachinesPhysique){
+			for(VM vm : mp.ListeVMs){
+				for(GroupeRessources ress:vm.groupeTezRessources){
+					for(ClasseClients c : cloud.listeClassesClient){
+						for(RequeteTez r : c.requeteTezEnAttente){
+							for(StageTez stage : r.listeStages){
+								for(GroupeTachesTez tache:stage.groupesTezTaches) {
+									if(A[stage.indexStage][tache.index]==ress.index) {
+										tache.ressource=ress;
+									}
+								}
+							}
+						}
 					}
 				}
 			}

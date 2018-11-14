@@ -29,6 +29,7 @@ public class VariablesGlobales {
 	public static int nbAgents=3;
 	public static int nbTacheParGroupe=8;
 	public static int tailleBlocDonnees=256*1024*1024;
+	public static int nbNiveauxInexactitude=3;
 	
 	public static FileWriter writer_gbrt;
 	public static FileWriter writer_gmpt;
@@ -37,6 +38,7 @@ public class VariablesGlobales {
 	
 	public static int T=1000;
 	public static double tailleFentreTemps=10000;
+	public static double budgetCollectStatistiques=10;
 	
 	public static double PnonPlacees=10000;
 	public static double coefRepartition=0;

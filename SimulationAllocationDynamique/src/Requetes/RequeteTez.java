@@ -14,8 +14,10 @@ public class RequeteTez {
 	public int dateLimite;
 	public int dateFinReelle;
 	public int tempsGMPT=0;
+	public ArrayList<Operation> listeEndroitCollectStatTrie;
 	Map<StagesKey, Long> quantiteTransfertStages;
 	public Map<StagesKey, Integer> typeLien;
+	public double budgetCollectStatistiques=0;
 	//public double quantiteStockeApresStage;
 	
 	public RequeteTez(double poids,int dateLimite,String name){
@@ -24,6 +26,7 @@ public class RequeteTez {
 		this.dateLimite=dateLimite;
 		this.dateFinReelle=-1;
 		listeStages=new ArrayList<StageTez>();
+		listeEndroitCollectStatTrie=new ArrayList<Operation>();
 		quantiteTransfertStages=new HashMap<StagesKey, Long>();
 		typeLien=new HashMap<StagesKey, Integer>();
 		this.index=VariablesGlobales.indexrequetes;
@@ -98,12 +101,12 @@ public class RequeteTez {
 	}
 	
 	public void descriptionRequete() {
-		System.out.println("--------------------------------------------------------");
-		System.out.println("Query : "+this.name);
-		for(StageTez stage: this.listeStages)
+		//System.out.println("--------------------------------------------------------");
+		System.out.println("Query : "+this.name+" budget : "+this.budgetCollectStatistiques);
+		/*for(StageTez stage: this.listeStages)
 		{
 			System.out.println("memoire ="+stage.memoireTacheTez);
 			//System.out.println("temps en fentres ="+stage.nombreTachesTez);
-		}
+		}*/
 	}
 }
