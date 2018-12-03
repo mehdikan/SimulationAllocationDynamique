@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.TreeSet;
+
+import CollectionStatistiques.*;
 import Infrastructure.*;
 import Modeles.ModeleCommunication;
 import Modeles.*;
@@ -49,12 +51,13 @@ public abstract class GenericGreedy {
 		}
 	}
 	
-	public ModeleCoutEconomique lancer(){
+	public ModeleCoutEconomique lancer(boolean collectCloud){
 		placer();
 		for(GroupeTachesTez tache:allGroupsTaches){
 			tache.fini=0;
 		}
 		ModeleCommunication.rajouterTempsCommunicationsGreedy(cloud);
+	    CollectionStatistiques.placementCollecteurStatistiques(cloud,collectCloud);
 		ModeleCoutEconomique cout=ordonnancer(false);
 		System.out.println("temps Total : "+cout.tempsExecTotal);
 		return cout;
@@ -194,12 +197,12 @@ public abstract class GenericGreedy {
 						if(trouv) break;
 					};
 
-					elu.ressource.vm.setAlloueTez(indexRessouces,tCourant,(int)Math.ceil((elu.stage.dureeTacheTezEnMs+elu.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps));
+					elu.ressource.vm.setAlloueTez(indexRessouces,tCourant,ModeleTempsReponse.msToFenetre(elu.stage.dureeTacheTezEnMs+elu.dureeCommunicationEnMs));
 					 Iterator<EvenementFinTachesTez> iterator = evenements.iterator(); 
 					 trouv=false;
 				      while (iterator.hasNext()){
 				    	  EvenementFinTachesTez ev=(EvenementFinTachesTez) iterator.next();
-				         if(ev.instant==tCourant+(int)Math.ceil((elu.stage.dureeTacheTezEnMs+elu.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps)){
+				         if(ev.instant==tCourant+ModeleTempsReponse.msToFenetre(elu.stage.dureeTacheTezEnMs+elu.dureeCommunicationEnMs)){
 				        	 trouv=true;
 				        	 ev.ressorceALiberer.add(elu.ressource);
 				        	 ev.tachesFinies.add(elu);
@@ -207,7 +210,7 @@ public abstract class GenericGreedy {
 				         }
 				      }
 				      if(!trouv){
-				    	  evenements.add(new EvenementFinTachesTez(tCourant+(int)Math.ceil((elu.stage.dureeTacheTezEnMs+elu.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps),elu.ressource,elu));
+				    	  evenements.add(new EvenementFinTachesTez(tCourant+ModeleTempsReponse.msToFenetre(elu.stage.dureeTacheTezEnMs+elu.dureeCommunicationEnMs),elu.ressource,elu));
 				      }
 				      allGroupsTaches.remove(elu);
 
@@ -255,7 +258,7 @@ public abstract class GenericGreedy {
 				}
 				if(trouv) break;
 			}
-			if(tache.ressource!=null && tache.pret(cloud,instantCourant) && tache.ressource.vm.verifierDisponibiliteTez(indexRessouces,instantCourant,(int)Math.ceil((tache.stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps))){
+			if(tache.ressource!=null && tache.pret(cloud,instantCourant) && tache.ressource.vm.verifierDisponibiliteTez(indexRessouces,instantCourant,ModeleTempsReponse.msToFenetre(tache.stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs))){
 				if(elu==null 
 						|| tache.ordre<elu.ordre)
 				{
@@ -353,10 +356,9 @@ public abstract class GenericGreedy {
 		for(GroupeTachesTez tache:allGroupsTaches){
 			if(tache.ressource!=null){
 				//coutProc+=tache.ressource.vm.processeurTezSlots*(tache.stage.dureeTacheTez+tache.dureeCommunication);
-				modeleCout.coutRessources+=tache.ressource.vm.memoireTezSlots*(long)Math.ceil((tache.stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps);
+				modeleCout.coutRessources+=tache.ressource.vm.memoireTezSlots*ModeleTempsReponse.msToFenetre(tache.stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs);
 			}
 		}
-
 		
 		for(ClasseClients cc : cloud.listeClassesClient){
 			for(RequeteTez r : cc.requeteTezEnAttente){
@@ -394,8 +396,7 @@ public abstract class GenericGreedy {
 							for(GroupeTachesTez tache1: stage1.groupesTezTaches){
 								double dureeDisque=0;
 								for(GroupeTachesTez tache2: stage2.groupesTezTaches){
-									dureeDisque=Math.max(dureeDisque, tache1.tempsDeclanchement+(int)Math.ceil((stage1.dureeTacheTezEnMs+tache1.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps)-(tache2.tempsDeclanchement+stage2.dureeTacheTezEnFenetres));
-									//dureeDisque=Math.max(dureeDisque, tache1.tempsDeclanchement-(tache2.tempsDeclanchement+stage2.dureeTacheTez));
+									dureeDisque=Math.max(dureeDisque, tache1.tempsDeclanchement+ModeleTempsReponse.msToFenetre(stage1.dureeTacheTezEnMs+tache1.dureeCommunicationEnMs)*VariablesGlobales.tailleFenetreTemps-(tache2.tempsDeclanchement+stage2.dureeTacheTezEnMs));
 								}
 								modeleCout.coutDisque+=dureeDisque*stage1.quantiteRecu;
 							}
@@ -404,11 +405,12 @@ public abstract class GenericGreedy {
 				}
 			}
 		}
+
 		for(ClasseClients c : cloud.listeClassesClient){
 			for(RequeteTez r : c.requeteTezEnAttente){
 				for(StageTez stage : r.listeStages){
 					for(GroupeTachesTez tache: stage.groupesTezTaches){
-						modeleCout.coutDisque+=stage.donneeInitiale*((int)Math.ceil((stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps));
+						modeleCout.coutDisque+=stage.donneeInitiale*(ModeleTempsReponse.msToFenetre(stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)*VariablesGlobales.tailleFenetreTemps);
 					}
 				}
 			}
@@ -424,15 +426,13 @@ public abstract class GenericGreedy {
 	    	for(RequeteTez rq:cc.requeteTezEnAttente){
 	    		for(StageTez stage:rq.listeStages){
 	    			for(GroupeTachesTez tache: stage.groupesTezTaches){
-	    				gantt.ajouterTrancheTemps(new TrancheTempsAlloue(tache.ressource.index, rq.index, stage.indexStage, tache.index, tache.tempsDeclanchement, (tache.dateFin-1)));
+	    				gantt.ajouterTrancheTemps(new TrancheTempsAlloue(tache.ressource.index, rq, stage, tache, tache.tempsDeclanchement, (tache.dateFin-1)));
 	    			}
 	    		}
 	    	}
 	    }
-
 	    return gantt;
 	}	
-	
 	
 	public void stock(){
 		for(GroupeRessources gr:this.allGroupsSlots){

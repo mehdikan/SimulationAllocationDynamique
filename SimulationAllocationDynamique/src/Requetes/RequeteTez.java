@@ -2,7 +2,10 @@ package Requetes;
 
 import java.util.*;
 import Divers.StagesKey;
+import ErreursEstimation.*;
+import Modeles.ModeleTempsReponse;
 import Divers.*;
+import CollectionStatistiques.*;
 import ParametresGlobeaux.*;
 
 public class RequeteTez {
@@ -11,22 +14,24 @@ public class RequeteTez {
 	public ArrayList<StageTez> listeStages;
 	public StageTez stageFinal;
 	public double poids;
+	public double importanceDateLimite;
 	public int dateLimite;
 	public int dateFinReelle;
 	public int tempsGMPT=0;
-	public ArrayList<Operation> listeEndroitCollectStatTrie;
+	public ArrayList<CollecteurPotentiel> listeEndroitCollectStatTrie;
 	Map<StagesKey, Long> quantiteTransfertStages;
 	public Map<StagesKey, Integer> typeLien;
-	public double budgetCollectStatistiques=0;
+	public double tempstCollectStatistiques=0;
 	//public double quantiteStockeApresStage;
 	
-	public RequeteTez(double poids,int dateLimite,String name){
+	public RequeteTez(Client client,String name){
 		this.name=name;
-		this.poids=poids;
-		this.dateLimite=dateLimite;
+		this.poids=client.poidsPenalites;
+		this.importanceDateLimite=client.importanceDateLimites;
+		this.dateLimite=0;
 		this.dateFinReelle=-1;
 		listeStages=new ArrayList<StageTez>();
-		listeEndroitCollectStatTrie=new ArrayList<Operation>();
+		listeEndroitCollectStatTrie=new ArrayList<CollecteurPotentiel>();
 		quantiteTransfertStages=new HashMap<StagesKey, Long>();
 		typeLien=new HashMap<StagesKey, Integer>();
 		this.index=VariablesGlobales.indexrequetes;
@@ -101,12 +106,48 @@ public class RequeteTez {
 	}
 	
 	public void descriptionRequete() {
-		//System.out.println("--------------------------------------------------------");
-		System.out.println("Query : "+this.name+" budget : "+this.budgetCollectStatistiques);
-		/*for(StageTez stage: this.listeStages)
+		System.out.println("--------------------------------------------------------");
+		System.out.println("Query : "+this.name+" "+this.tempstCollectStatistiques);
+		System.out.println(this.tempstCollectStatistiques+" "+this.tailleRequete());
+		for(StageTez stage: this.listeStages)
 		{
-			System.out.println("memoire ="+stage.memoireTacheTez);
-			//System.out.println("temps en fentres ="+stage.nombreTachesTez);
-		}*/
+			stage.descriptionStage();
+			System.out.println("----------------------------------------");
+			//System.out.println("temps "+stage.name+" = "+stage.dureeTacheTezEnMs+" "+ModeleTempsReponse.msToFenetre(stage.dureeTacheTezEnMs));
+			//System.out.println("temps en fenetres ="+stage.nombreTachesTez);
+		}
+		System.out.println("--------------------------------------------------------------------------");
+	}
+	
+	public void majDureeStages() {
+		for(StageTez stage : this.listeStages) {
+			stage.calculDureeTacheTez();
+		}
+	}
+	
+	public double tailleRequete() {
+		double taille=0;
+		for(StageTez stage : this.listeStages) {
+			for(GroupeTachesTez tache : stage.groupesTezTaches) {
+				taille+=ModeleTempsReponse.msToFenetre(stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs);
+			}
+		}
+		return VariablesGlobales.tailleFenetreTemps*taille;
+	}
+	
+	public double tauxCollecteur() {
+		int cpt1=0,cpt2=0;
+		for(StageTez stage: this.listeStages)
+		{
+			for(Operation op : stage.listeOperation) {
+				if(op.mettreCollecteur) {
+					cpt1++;
+				}
+				if(op.isInteressantMettreCollecteur()) {
+					cpt2++;
+				}
+			}
+		}
+		return ((double)cpt1)/cpt2;
 	}
 }

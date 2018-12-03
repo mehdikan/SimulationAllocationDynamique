@@ -14,9 +14,9 @@ public class GroupeTachesTez {
 	public int index;
 	public int indexDansStage;
 	public int dateFin;
-	public double dureeEnFenetre;
+	//public double dureeEnFenetre;
 	public int ordre=0;
-	public int dureeCommunicationEnMs=0;
+	public double dureeCommunicationEnMs=0;
 	
 	public int finiBack; // 0 non - 1 oui
 	public int tempsDeclanchementBack;
@@ -34,9 +34,9 @@ public class GroupeTachesTez {
 		this.dateFin=this.dateFinBack;
 	}
 	
-	public GroupeTachesTez(StageTez stage,double duree,int indexDansStage){
+	public GroupeTachesTez(StageTez stage,int indexDansStage){
 		this.stage=stage;
-		this.dureeEnFenetre=duree;
+		//this.dureeEnFenetre=duree;
 		this.fini=0;
 		this.dateFin=-1;
 		this.dependances=new ArrayList<GroupeTachesTez>();

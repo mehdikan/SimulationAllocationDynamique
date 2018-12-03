@@ -10,8 +10,8 @@ import AllocationStatique.*;
 
 public class ModeleCommunication {
 	public static double bwVM=0;
-	public static double bwMPhysique=(80.0*1024/8/(256))/1000;  // bloc/ms  (80gbit/s)
-	public static double bwReseauPhysique=(80.0*1024/8/(256))/1000; // bloc/ms  (80gbit/s)  
+	public static double bwMPhysique=(200.0*1024/(256))/1000;  // bloc/ms  (100gbit/s)
+	public static double bwReseauPhysique=(100.0*1024/(256))/1000; // bloc/ms  (100gbit/s)  
 	
 	
 	public static double distanceToBW(int distance) {
@@ -38,7 +38,7 @@ public class ModeleCommunication {
 								}
 							}
 						}
-					    tache1.dureeCommunicationEnMs=(int)tempsComm;
+					    tache1.dureeCommunicationEnMs=tempsComm;
 					}
 				}
 			}
@@ -63,8 +63,7 @@ public class ModeleCommunication {
 								}
 							}
 						}
-					    //tache1.dureeCommunication=(int)Math.ceil(tempsComm/VariablesGlobales.tailleFentreTemps);
-					    tache1.dureeCommunicationEnMs=(int)tempsComm;
+					    tache1.dureeCommunicationEnMs=tempsComm;
 					}
 				}
 			}

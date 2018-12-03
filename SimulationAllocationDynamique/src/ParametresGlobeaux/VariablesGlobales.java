@@ -3,6 +3,7 @@ package ParametresGlobeaux;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class VariablesGlobales {
 	public static int jobIndex=0;
@@ -28,8 +29,8 @@ public class VariablesGlobales {
 	public static boolean verbose=true;
 	public static int nbAgents=3;
 	public static int nbTacheParGroupe=8;
+	public static long tailleMemoireParGroupeEnGo=32;
 	public static int tailleBlocDonnees=256*1024*1024;
-	public static int nbNiveauxInexactitude=3;
 	
 	public static FileWriter writer_gbrt;
 	public static FileWriter writer_gmpt;
@@ -37,12 +38,18 @@ public class VariablesGlobales {
 	public static FileWriter writer_pl2p;
 	
 	public static int T=1000;
-	public static double tailleFentreTemps=10000;
-	public static double budgetCollectStatistiques=10;
+	public static int tailleFenetreTemps=10000;
+	
 	
 	public static double PnonPlacees=10000;
 	public static double coefRepartition=0;
 	public static double niveauDisponiblite=1;
+	
+	public static long seed=1234;
+	public static Random random;
+	
+	public static double temps_TABLESCAN=0,temps_FILTER=0,temps_PROJECTION=0,temps_MAPJOIN=0,temps_MERGEJOIN=0,temps_GROUPBY=0,temps_LIMIT=0,temps_PARTITION=0,temps_LECTUREDISQUE=0,temps_ECRITUREDISQUE=0,temps_COLLECT=0;
+	public static double cpt_TABLESCAN=0,cpt_FILTER=0,cpt_PROJECTION=0,cpt_MAPJOIN=0,cpt_MERGEJOIN=0,cpt_GROUPBY=0,cpt_LIMIT=0,cpt_PARTITION=0,cpt_LECTUREDISQUE=0,cpt_ECRITUREDISQUE=0,cpt_COLLECT=0;
 
 	public static void init(){
 		jobIndex=0;
@@ -65,5 +72,6 @@ public class VariablesGlobales {
 		jobOrdreArrive=0;
 		stageOrdreArrive=0;
 		ordreLiberation=0;
+		random=new Random(VariablesGlobales.seed);
 	}
-}
+};

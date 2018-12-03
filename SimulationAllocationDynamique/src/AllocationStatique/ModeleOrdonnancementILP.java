@@ -86,9 +86,9 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 				for(StageTez stage1 : rq.listeStages){
 					Dt_max[stage1.indexStage]=0;
 					for(GroupeTachesTez tache: stage1.groupesTezTaches) {
-						Dt_max[stage1.indexStage]=Math.max(Dt_max[stage1.indexStage], (int)Math.ceil((stage1.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps));
-						Dt_traitement[stage1.indexStage][tache.indexDansStage]=stage1.dureeTacheTezEnFenetres;
-						Dt_traitement_et_communication[stage1.indexStage][tache.indexDansStage]=(int)Math.ceil((stage1.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps);
+						Dt_max[stage1.indexStage]=Math.max(Dt_max[stage1.indexStage], ModeleTempsReponse.msToFenetre(stage1.dureeTacheTezEnMs+tache.dureeCommunicationEnMs));
+						Dt_traitement[stage1.indexStage][tache.indexDansStage]= ModeleTempsReponse.msToFenetre(stage1.dureeTacheTezEnMs); 
+						Dt_traitement_et_communication[stage1.indexStage][tache.indexDansStage]=ModeleTempsReponse.msToFenetre(stage1.dureeTacheTezEnMs+tache.dureeCommunicationEnMs);
 					}
 					//Dt[stage1.indexStage]=stage1.dureeTacheTez;
 					D[stage1.indexStage]=rq.dateLimite;
@@ -522,9 +522,8 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 		            val  = GLPK.glp_mip_col_val(lp, index);
 		            if(VariablesGlobales.verbose) System.out.print(val+" ");
 		            index++;
-		            modeleCout.coutDisque+=val*quantiteRecue[i];
+		            modeleCout.coutDisque+=val*quantiteRecue[i]*VariablesGlobales.tailleFenetreTemps;
         		}
-        		//modeleCout.coutDisque+=quantiteRecue[i]*Dt_traitement_et_communication[i][j];
         		if(VariablesGlobales.verbose) System.out.println(")");
         		if(VariablesGlobales.verbose) System.out.println("");
         	}
@@ -534,7 +533,7 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 			for(RequeteTez r : c.requeteTezEnAttente){
 				for(StageTez stage : r.listeStages){
 					for(GroupeTachesTez tache: stage.groupesTezTaches){
-						modeleCout.coutDisque+=stage.donneeInitiale*((int)Math.ceil(stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps);
+						modeleCout.coutDisque+=stage.donneeInitiale*ModeleTempsReponse.msToFenetre(stage.dureeTacheTezEnMs+tache.dureeCommunicationEnMs)*VariablesGlobales.tailleFenetreTemps;
 					}
 				}
 			}
@@ -569,7 +568,17 @@ public class ModeleOrdonnancementILP implements GlpkCallbackListener{
 					}
 				}
 				finStage=Math.max(finStage, fin);
-				gantt.ajouterTrancheTemps(new TrancheTempsAlloue(A[i][j], Req[i], i, j, debut, fin));
+				for(ClasseClients c : cloud.listeClassesClient){
+					for(RequeteTez r : c.requeteTezEnAttente){
+						for(StageTez stage : r.listeStages){
+							for(GroupeTachesTez tache: stage.groupesTezTaches){
+								if(Req[i]==r.index && i==stage.indexStage && j==tache.index) {
+									gantt.ajouterTrancheTemps(new TrancheTempsAlloue(A[i][j], r, stage, tache, debut, fin));
+								}
+							}
+						}
+					}
+				}
 			}
 			
 			if(P[i]>0 && finStage>D[i]) {

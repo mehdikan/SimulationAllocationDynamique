@@ -16,11 +16,13 @@ import Requetes.StageTez;
 
 public class ShiftAlgorithm {
 	
-	public static void shiftRight(Cloud cloud,PlanStatique planStatique,TrancheTempsAlloue tranche,int dacalage) {
-		System.out.println(">> "+(tranche.indexRequete+1)+" "+(tranche.indexStage+1)+" "+(tranche.indexTache+1)+" "+dacalage);
+	public static void shiftRight(Cloud cloud,PlanStatique planStatique,TrancheTempsAlloue tranche,int dacalage,boolean firstCall) {
+		//System.out.println(">> "+(tranche.requete.index+1)+" "+(tranche.stage.indexStage+1)+" "+(tranche.tache.index+1)+" "+dacalage);
 		planStatique.tab.remove(tranche);
-		tranche.dateDebut+=dacalage;
-		tranche.dateFin+=dacalage;
+		if(!firstCall) {
+			tranche.dateDebut+=dacalage;
+			tranche.dateFin+=dacalage;
+		}
 		
 		int tt=-1;
 		ArrayList<TrancheTempsAlloue> aShifterTab=new ArrayList<TrancheTempsAlloue>();
@@ -35,13 +37,13 @@ public class ShiftAlgorithm {
 			aShifterTab.add(aShifter);
 		
 	
-		RequeteTez r=cloud.getRequete(tranche.indexRequete);
-		StageTez stage1=r.getStageByGlobalIndex(tranche.indexStage);
+		RequeteTez r=cloud.getRequete(tranche.requete.index);
+		StageTez stage1=r.getStageByGlobalIndex(tranche.stage.indexStage);
 		for(StageTez stage2 : r.listeStages){
 			if(r.getLien(stage1,stage2)>0) {
 				for(GroupeTachesTez tache : stage2.groupesTezTaches) {
 					for(TrancheTempsAlloue s:planStatique.tab){
-						if(tache.stage.requeteTez.index==s.indexRequete && tache.stage.indexStage==s.indexStage && tache.indexDansStage==s.indexTache && tranche.dateFin>s.dateDebut) {
+						if(tache.stage.requeteTez.index==s.requete.index && tache.stage.indexStage==s.stage.indexStage && tache.indexDansStage==s.tache.index && tranche.dateFin>s.dateDebut) {
 							aShifterTab.add(s);
 						}
 					}
@@ -49,13 +51,10 @@ public class ShiftAlgorithm {
 			}
 		}
 		
-		for(TrancheTempsAlloue tta:aShifterTab){
-			//System.out.println("*** "+(tta.indexRequete+1)+" "+(tta.indexStage+1)+" "+(tta.indexTache+1));
-		}
 		
 		for(TrancheTempsAlloue tta:aShifterTab){
 			if(tranche.dateFin+1-tta.dateDebut>0)
-				shiftRight(cloud,planStatique,tta,tranche.dateFin+1-tta.dateDebut);
+				shiftRight(cloud,planStatique,tta,tranche.dateFin+1-tta.dateDebut,false);
 		}
 		
 		planStatique.tab.add(tranche);

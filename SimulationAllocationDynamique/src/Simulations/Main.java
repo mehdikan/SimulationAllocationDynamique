@@ -19,7 +19,7 @@ import AllocationDynamique.*;
 public class Main {
 	public static void main(String[] args)  throws IOException{
 		// TODO Auto-generated method stub		
-		int algoStatique=2;
+		/*int algoStatique=2;
 		int nb=VariablesGlobales.nbTacheParGroupe;
 		Cloud cloud=new Cloud();
 		cloud.listeMachinesPhysique.add(new MachinePhysique());
@@ -100,7 +100,7 @@ public class Main {
 	   
 		
 		
-		org.Interface.Gantt.showGantt("resultat.txt");
+		//org.Interface.Gantt.showGantt("resultat.txt");
 	}
 
 }

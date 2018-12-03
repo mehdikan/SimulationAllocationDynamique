@@ -3,6 +3,7 @@ package Infrastructure;
 import java.util.*;
 
 import Divers.IntKey;
+import Modeles.ModeleTempsReponse;
 
 //import com.sun.javafx.collections.MapAdapterChange;
 
@@ -125,7 +126,7 @@ public class Cloud {
 					&& tachesG.stage.memoireTacheTez<=vm.memoireTezSlots){
 					for(GroupeRessources g:vm.groupeTezRessources){
 						int indexRessouces=0;
-						if(g.getDisponibilite()==1 && vm.verifierDisponibiliteTez(indexRessouces,instantCourant,tachesG.stage.dureeTacheTezEnFenetres)){
+						if(g.getDisponibilite()==1 && vm.verifierDisponibiliteTez(indexRessouces,instantCourant,ModeleTempsReponse.msToFenetre(tachesG.stage.dureeTacheTezEnMs))){ 
 							boolean trouv=false;
 							for(GroupeTachesTez gg:tachesG.stage.groupesTezTaches){
 								if(tachesG!=gg && gg.ressource==g){
@@ -378,5 +379,13 @@ public class Cloud {
 			}
 		}
 		return null;
+	}
+	
+	public void calculDateLimites() {
+		for(ClasseClients c:this.listeClassesClient) {
+			for(RequeteTez r:c.requeteTezEnAttente) {
+				r.dateLimite=(int)Math.ceil(r.tailleRequete()*r.importanceDateLimite);
+			}
+		}
 	}
 }

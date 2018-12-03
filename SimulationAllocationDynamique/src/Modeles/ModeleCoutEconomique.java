@@ -1,14 +1,15 @@
 package Modeles;
 
+import ParametresGlobeaux.VariablesGlobales;
 
 public class ModeleCoutEconomique {
 	public static double prixUnitePenalites=1;
-	public static double prixUniteCommunication=0.00005;
-	public static double prixUniteRessources=0.005;
-	public static double prixUniteDisque=0.0025;
+	public static double prixUniteCommunication=0.001/(1024L*1024*1024/VariablesGlobales.tailleBlocDonnees); // 0.001 dollar/Go
+	public static double prixUniteRessources=0.3328/((int)(VariablesGlobales.tailleMemoireParGroupeEnGo*1024*1024*1024/VariablesGlobales.tailleBlocDonnees))/(3600000/VariablesGlobales.tailleFenetreTemps); // t3.2xlarge	8cpu	32Gio	0,3328 USD par heure
+	public static double prixUniteDisque=0.1/(1024L*1024*1024/VariablesGlobales.tailleBlocDonnees)/((30L*24*60*60*1000)); // 0,1 dollar/Go/mois Volumes SSD à usage général (gp2) Amazon EBS
 	
-	public static double poidsCoutsCommEntreVM=1;
-	public static double poidsCoutsCommEntreMPhyique=10;
+	public static double poidsCoutsCommEntreVM=0;
+	public static double poidsCoutsCommEntreMPhyique=1;
 	
 	public double coutRessources=0;
 	public double coutDisque=0;

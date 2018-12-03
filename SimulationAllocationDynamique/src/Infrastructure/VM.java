@@ -76,20 +76,8 @@ public class VM {
 	
 	public void initDisponibiliteTrancheTemps(){
 		for(int t=0;t<VariablesGlobales.T;t++){
-			for(int i=0;i<nbMapSlots;i++){
-				if(Math.random()<VariablesGlobales.niveauDisponiblite){
-					disponibliteTrancheTempsMap[i][t]=1;
-				}
-				else disponibliteTrancheTempsMap[i][t]=0;
-			}
-			for(int i=0;i<nbReduceSlots;i++){
-				if(Math.random()<VariablesGlobales.niveauDisponiblite){
-					disponibliteTrancheTempsReduce[i][t]=1;
-				}
-				else disponibliteTrancheTempsReduce[i][t]=0;
-			}
 			for(int i=0;i<nbTezSlots;i++){
-				if(Math.random()<VariablesGlobales.niveauDisponiblite){
+				if(VariablesGlobales.random.nextDouble()<VariablesGlobales.niveauDisponiblite){
 					disponibliteTrancheTempsTez[i][t]=1;
 				}
 				else disponibliteTrancheTempsTez[i][t]=0;

@@ -152,7 +152,7 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 		for(ClasseClients c : cloud.listeClassesClient){
 			for(RequeteTez rq : c.requeteTezEnAttente){
 				for(StageTez stage1 : rq.listeStages){
-					Dt_en_fenetre[stage1.indexStage]=stage1.dureeTacheTezEnFenetres;
+					Dt_en_fenetre[stage1.indexStage]=ModeleTempsReponse.msToFenetre(stage1.dureeTacheTezEnMs);
 					Dt_en_ms[stage1.indexStage]=stage1.dureeTacheTezEnMs;
 				}
 			}
@@ -443,7 +443,7 @@ public class ModelePlacementILP  implements GlpkCallbackListener{
 			for(int m=0;m<nbTezTasks[i];m++){
 				for(int a=0;a<nbTezSlots;a++){
 					//coutTotalProcesseur+=GLPK.glp_mip_col_val(lp, getXIndex(i,m,a))*Dt[i]*PROCS[a];
-					coutTotalMemoire+=GLPK.glp_mip_col_val(lp, getXIndex(i,m,a))*((int)Math.ceil((stages[i].dureeTacheTezEnMs+taches[i][m].dureeCommunicationEnMs)/VariablesGlobales.tailleFentreTemps))*MEMS[a];
+					coutTotalMemoire+=GLPK.glp_mip_col_val(lp, getXIndex(i,m,a))*(ModeleTempsReponse.msToFenetre(stages[i].dureeTacheTezEnMs+taches[i][m].dureeCommunicationEnMs))*MEMS[a];
 				}
 			}
 		}

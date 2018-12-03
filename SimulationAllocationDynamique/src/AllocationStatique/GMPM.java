@@ -98,12 +98,12 @@ public class GMPM extends GenericGreedy {
 			}
 			for(GroupeTachesTez tache:allGroupsTaches){
 				if(tache.ressource!=null){
-					chargeRessources.put(tache.ressource, chargeRessources.get(tache.ressource)+tache.stage.dureeTacheTezEnFenetres);
+					chargeRessources.put(tache.ressource, chargeRessources.get(tache.ressource)+ModeleTempsReponse.msToFenetre(tache.stage.dureeTacheTezEnMs));
 				}
 			}
 			double deviation=-1;
 			for(GroupeRessources ress:candidates){
-				chargeRessources.put(ress, chargeRessources.get(ress)+n.stage.dureeTacheTezEnFenetres);
+				chargeRessources.put(ress, chargeRessources.get(ress)+ModeleTempsReponse.msToFenetre(n.stage.dureeTacheTezEnMs));
 				Statistics stat=new Statistics(chargeRessources);
 				double var=stat.getVariance();
 				if(deviation==-1 || var<deviation){
@@ -118,7 +118,7 @@ public class GMPM extends GenericGreedy {
 						ressChoisie=ress;
 					}
 				}
-				chargeRessources.put(ress, chargeRessources.get(ress)-n.stage.dureeTacheTezEnFenetres);
+				chargeRessources.put(ress, chargeRessources.get(ress)-ModeleTempsReponse.msToFenetre(n.stage.dureeTacheTezEnMs));
 			}
 		}
 		
